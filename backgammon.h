@@ -1,16 +1,16 @@
-/////////// Strutures à utiliser
+/////////// Strutures √† utiliser
 
-// Représente un joueur
+// Repr√©sente un joueur
 typedef enum
 {
-	EPlayer1,	// Joueur 1 -> le joueur courant pour la stratégie
+	EPlayer1,	// Joueur 1 -> le joueur courant pour la strat√©gie
 	EPlayer2,	// Joueur 2
 } EPlayer;
 
-// Structure de représentation d'une zone du jeu
+// Structure de repr√©sentation d'une zone du jeu
 typedef struct
 {
-	EPlayer player;				// Joueur propriétaire des pions
+	EPlayer player;				// Joueur propri√©taire des pions
 	unsigned int nb_checkers;	// Nombre de pion du joueur sur la zone
 } SZone;
 
@@ -47,30 +47,30 @@ typedef enum
 	EPos_BarP2
 } EPosition;
 
-// Structure de représentation du jeu avec son plateau et les dés
+// Structure de repr√©sentation du jeu avec son plateau et les d√©s
 typedef struct
 {
-	SZone zones[28];			// Tableau contenants les zones o˘ les pions peuvent se trouver, indexés par des EPosition
-	unsigned int die1,die2;		// Les dés de jeu
+	SZone zones[28];			// Tableau contenants les zones o√π les pions peuvent se trouver, index√©s par des EPosition
+	unsigned int die1,die2;		// Les d√©s de jeu
 	unsigned int score,scoreP2;	// Les scores des joueurs
 	unsigned int stake;			// Mise courante de la partie
 } SGameState;
 
-// Structure de représentation d'un mouvement
+// Structure de repr√©sentation d'un mouvement
 typedef struct
 {
 	EPosition src_point;
 	EPosition dest_point;
 } SMove;
 
-/////////// Focntions à utiliser
-// Les prototypes en commentaires sont à implémenter dans la librairie
+/////////// Focntions √† utiliser
+// Les prototypes en commentaires sont √† impl√©menter dans la librairie
 // Les types pointeur de fonction dans l'application
 
 /**
  * Initialiser la librairie
  * @param char name[50]
- *	nom associé à la librairie
+ *	nom associ√© √† la librairie
  */
 //void InitLibrary(char name[50]);
 typedef void (*pfInitLibrary)(char[50]);
@@ -104,7 +104,7 @@ typedef void (*pfEndMatch)();
 /**
  * Doubler la mise
  * @param const SGameState * const gameState
- *	l'état du jeu courant
+ *	l'√©tat du jeu courant
  * @return int
  *	vrai si on propose de doubler : faux sinon
  */
@@ -114,7 +114,7 @@ typedef int (*pfDoubleStack)(const SGameState * const);
 /**
  * Accepter ou refuser la nouvelle mise
  * @param const SGameState * const gameState
- *	l'état du jeu courant
+ *	l'√©tat du jeu courant
  * @return int
  *	vrai si on accepte la nouvelle mise ; faux sinon
  */
@@ -122,13 +122,13 @@ typedef int (*pfDoubleStack)(const SGameState * const);
 typedef int (*pfTakeDouble)(const SGameState * const);
 
 /**
- * Prise de décision de la part de l'IA
+ * Prise de d√©cision de la part de l'IA
  * @param const SGameState * const gameState
- *	l'état du jeu courant
+ *	l'√©tat du jeu courant
  * @param SMove moves[4]
- *	tableau des mouvements à effectuer par l'IA
+ *	tableau des mouvements √† effectuer par l'IA
  * @param unsigned int lastTimeError
- *	vrai si la derniËre action a causée une erreur
+ *	vrai si la derni√®re action a caus√©e une erreur
  */
 //void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned int lastTimeError);
 typedef void (*pfMakeDecision)(const SGameState * const, SMove[4], unsigned int);

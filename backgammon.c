@@ -54,17 +54,17 @@ void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned i
 // Dans l'exŽcutable
 //
 
-void deroulement_du_jeu()	
+void deroulement_du_jeu()
 //int main()
 {
-	//*****// ˆ chaque utilisation de gameState, ne pas oublier de faire une copie de tous les ŽlŽments (pas fait ici)
+	//*****// A chaque utilisation de gameState, ne pas oublier de faire une copie de tous les éléments (pas fait ici)
 	SGameState gameState;
 	SMove moves[4];
 
-	//*****// ˆ faire pour chaque joueur
-	
-	// Chargement de la librairie (chargement des pointeurs de fonctions des fonctions dŽcrites dans "backgammon.h")
-	// -> ˆ ermplacer par votre code de chargement
+	//*****// A faire pour chaque joueur
+
+	// Chargement de la librairie (chargement des pointeurs de fonctions des fonctions décrites dans "backgammon.h")
+	// -> A ermplacer par votre code de chargement
 	pfInitLibrary j1InitLibrary=InitLibrary;
 	pfStartMatch j1StartMatch=StartMatch;
 	pfStartGame j1StartGame=StartGame;
@@ -81,7 +81,7 @@ void deroulement_du_jeu()
 	j1InitLibrary(name);
 	j1StartMatch(5);
 
-		//*****// ˆ faire pour chaque jeu
+		//*****// A faire pour chaque jeu
 		j1StartGame();
 			//*****// pour chaque joueur, tant que ce n'est pas fini
 			if (j1DoubleStack(&gameState))
