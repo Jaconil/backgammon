@@ -1,0 +1,25 @@
+Mettre les sources (.c et .h) dans src/gui ou src/ia ;)
+
+Enregistrez vos fichiez en UTF-8 svp
+
+Coding style GUI :
+
+/* <Description fonction
+ * @param <type> <nom>
+ *     <Description argument>
+ * @return <type de retour>
+ *     <Description retour>
+ */
+<Type> <Nom fonction>(<args>)
+{
+    ...
+}
+
+Pour un ficher <nom>.h
+
+#ifndef _<NOM>
+#define _<NOM>
+
+...
+
+#endif
