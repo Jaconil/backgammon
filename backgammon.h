@@ -1,4 +1,4 @@
-/////////// Strutures à utiliser
+/////////// Structures à utiliser
 
 // Représente un joueur
 typedef enum
@@ -63,7 +63,7 @@ typedef struct
 	EPosition dest_point;
 } SMove;
 
-/////////// Focntions à utiliser
+/////////// Fonctions à utiliser
 // Les prototypes en commentaires sont à implémenter dans la librairie
 // Les types pointeur de fonction dans l'application
 
