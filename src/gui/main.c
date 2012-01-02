@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <SDL/SDL.h>
 
+#include "cste.h"
 #include "library.h"
+#include "gui.h"
  
 int main(int argc, char *argv[])
 {
@@ -16,10 +17,14 @@ int main(int argc, char *argv[])
     if (gameMode == ERROR)
         return EXIT_FAILURE;
     
-    // Affichage du menu
-    //InitWindow();
+    if (!InitWindow())
+        return EXIT_FAILURE;
+        
     //DisplayMenu();
+    while(1);
     
+    // Libération des ressources
+    FreeWindow();    
     FreeAIStruct(&aiFunctions);
 
     return EXIT_SUCCESS;
