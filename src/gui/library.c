@@ -25,7 +25,7 @@ void InitAIStruct(S_AIFunctions* aiFunctions)
     }
 }
 
-/* Procédure qui libère les ressources utilisees par les API
+/* Procédure qui libere les ressources utilisees par les API
  * @param S_AIFunctions* aiFunctions
  *     Structure de stockage des fonctions des bibliotheques
  */
