@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     SDL_Surface *window = NULL;
     SDL_Surface *icon = NULL;
     
-    if (!InitWindow(window, icon))
+    if (!InitWindow(&window, &icon))
         return EXIT_FAILURE;
     
     // Affichage du menu
