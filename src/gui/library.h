@@ -15,15 +15,15 @@ typedef enum
 // Stockage des API et des pointeurs de fonctions pour les 2 IA
 typedef struct
 {
-    void* ai[2];
-    pfInitLibrary  AI_InitLibrary[2];
-    pfStartMatch   AI_StartMatch[2];
-    pfStartGame    AI_StartGame[2];
-    pfEndGame      AI_EndGame[2];
-    pfEndMatch     AI_EndMatch[2];
-    pfDoubleStack  AI_DoubleStack[2];
-    pfTakeDouble   AI_TakeDouble[2];
-    pfMakeDecision AI_MakeDecision[2];
+    void* ai;
+    pfInitLibrary  AI_InitLibrary;
+    pfStartMatch   AI_StartMatch;
+    pfStartGame    AI_StartGame;
+    pfEndGame      AI_EndGame;
+    pfEndMatch     AI_EndMatch;
+    pfDoubleStack  AI_DoubleStack;
+    pfTakeDouble   AI_TakeDouble;
+    pfMakeDecision AI_MakeDecision;
 } S_AIFunctions;
 
 // Fonctions d'initialisation et de terminaison de la structure des API

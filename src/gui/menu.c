@@ -30,7 +30,15 @@ void EventsMenu(SDL_Event* event, int* finish)
  * @param S_AIFunctions aiFunctions
  *     Structure de stockage des fonctions des bibliotheques
  */
-void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions aiFunctions)
+void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunctions)
 {
+    int finish = 0;
+    SDL_Event event;
     
+    while(!finish)
+    {
+        EventsMenu(&event, &finish);
+        
+        // Affichage
+    }
 }

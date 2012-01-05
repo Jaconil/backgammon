@@ -11,13 +11,13 @@
 int main(int argc, char *argv[])
 {
     // Analyse des arguments et chargement des API
-    S_AIFunctions aiFunctions;    
-    InitAIStruct(&aiFunctions);
+    S_AIFunctions aiFunctions[2];    
+    InitAIStruct(aiFunctions);
 
-    E_GameMode gameMode = ParseArgs(argc, argv, &aiFunctions);
+    E_GameMode gameMode = ParseArgs(argc, argv, aiFunctions);
     
     if (gameMode == ERROR)
-        return EXIT_FAILURE;    
+        return EXIT_FAILURE; 
         
     // Chargement de la fenetre
     SDL_Surface *window = NULL;
@@ -26,19 +26,12 @@ int main(int argc, char *argv[])
     if (!InitWindow(window, icon))
         return EXIT_FAILURE;
     
-    // Boucle principale
-    int finish = 0;
-    SDL_Event event;
-    
-    while(!finish)
-    {
-        EventsMenu(&event, &finish);
-        DisplayMenu(window, gameMode, aiFunctions);
-    }
+    // Affichage du menu
+    DisplayMenu(window, gameMode, aiFunctions);
     
     // Liberation des ressources
     FreeWindow(icon);    
-    FreeAIStruct(&aiFunctions);
+    FreeAIStruct(aiFunctions);
 
     return EXIT_SUCCESS;
 }
