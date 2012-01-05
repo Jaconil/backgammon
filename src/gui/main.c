@@ -3,6 +3,7 @@
 
 #include <SDL/SDL.h>
 
+// Compatibilité Windows
 #ifdef _WIN32
 #undef main
 #endif
@@ -21,7 +22,7 @@ int main(int argc, char *argv[])
     E_GameMode gameMode = ParseArgs(argc, argv, aiFunctions);
     
     if (gameMode == ERROR)
-        return EXIT_FAILURE; 
+        return EXIT_FAILURE;
         
     // Chargement de la fenetre
     SDL_Surface *window = NULL;
