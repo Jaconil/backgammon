@@ -32,5 +32,5 @@ void EventsMenu(SDL_Event* event, int* finish)
  */
 void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions aiFunctions)
 {
-    
+
 }
