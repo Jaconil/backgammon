@@ -2,5 +2,12 @@
 *nohup.out
 *~
 backgammon
+*.exe
+*.cbp
+*.depend
+*.layout
+*.dll
+bin*
+obj*
 ia.so
 *max*

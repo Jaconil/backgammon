@@ -3,11 +3,15 @@
 
 #include <SDL/SDL.h>
 
+#ifdef _WIN32
+#undef main
+#endif
+
 #include "cste.h"
 #include "library.h"
 #include "gui.h"
 #include "menu.h"
- 
+
 int main(int argc, char *argv[])
 {
     // Analyse des arguments et chargement des API
