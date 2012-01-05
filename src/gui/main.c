@@ -6,42 +6,38 @@
 #include "cste.h"
 #include "library.h"
 #include "gui.h"
+#include "menu.h"
  
 int main(int argc, char *argv[])
 {
-    S_AIFunctions aiFunctions;
-    S_Surfaces surfaces;
-    
+    // Analyse des arguments et chargement des API
+    S_AIFunctions aiFunctions;    
     InitAIStruct(&aiFunctions);
 
-    // Analyse des arguments et chargement des API
     E_GameMode gameMode = ParseArgs(argc, argv, &aiFunctions);
     
     if (gameMode == ERROR)
-        return EXIT_FAILURE;
-    
-    if (!InitWindow(&surfaces))
-        return EXIT_FAILURE;
+        return EXIT_FAILURE;    
         
-    //DisplayMenu();
+    // Chargement de la fenetre
+    SDL_Surface *window = NULL;
+    SDL_Surface *icon = NULL;
     
-    // Code temporaire
-    int continuer = 1;
+    if (!InitWindow(window, icon))
+        return EXIT_FAILURE;
+    
+    // Boucle principale
+    int finish = 0;
     SDL_Event event;
     
-    while(continuer)
+    while(!finish)
     {
-        SDL_WaitEvent(&event);
-        switch(event.type)
-        {
-            case SDL_QUIT:
-                continuer = 0;
-        }
+        EventsMenu(&event, &finish);
+        DisplayMenu(window, gameMode, aiFunctions);
     }
-    // fin code temporaire
     
-    // Libération des ressources
-    FreeWindow(&surfaces);    
+    // Liberation des ressources
+    FreeWindow(icon);    
     FreeAIStruct(&aiFunctions);
 
     return EXIT_SUCCESS;
