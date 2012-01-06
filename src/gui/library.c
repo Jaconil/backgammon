@@ -75,6 +75,8 @@ int LoadAPI(char* path, S_AIFunctions* aiFunctions, int index)
     if ((aiFunctions[index].AI_TakeDouble = (pfTakeDouble)DLSYM(aiFunctions[index].ai, "TakeDouble")) == NULL) return 0;   
     if ((aiFunctions[index].AI_MakeDecision = (pfMakeDecision)DLSYM(aiFunctions[index].ai, "MakeDecision")) == NULL) return 0;   
 
+    
+
     return 1;
 }
 
