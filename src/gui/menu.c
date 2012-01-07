@@ -87,11 +87,26 @@ void EventsMenu(SDL_Event* event, int* finish, S_GameConfig* gameConfig, E_MenuS
         case SDL_QUIT:
             *finish = 1;
             break;
+        case SDL_MOUSEBUTTONDOWN:
+            if (ClickRect(event, 450, 446, 150, 45))
+                    *selected = QUIT;
+
+            if (ClickRect(event, 158, 446, 150, 45))
+                    *selected = START;
+
+            break;
         case SDL_MOUSEBUTTONUP:
             if (event->button.button == SDL_BUTTON_LEFT)
             {
+                // Boutons
                 if (ClickRect(event, 450, 446, 150, 45))
                     *finish = 1;
+
+                if (ClickRect(event, 158, 446, 150, 45))
+                {
+                    // TODO: Fonction de jeu
+                }
+
 
                 // Sélection des zones de texte
                 if (ClickRect(event, 379, 126, 300, 40))
@@ -99,7 +114,7 @@ void EventsMenu(SDL_Event* event, int* finish, S_GameConfig* gameConfig, E_MenuS
                 else if (ClickRect(event, 379, 186, 300, 40))
                     *selected = PLAYER2;
                 else
-                    *selected = OTHER;
+                    *selected = NONE;
 
                 // Clic sur les boutons
                 if (ClickRect(event, 379, 246, 40, 40))
@@ -145,10 +160,13 @@ void EventsMenu(SDL_Event* event, int* finish, S_GameConfig* gameConfig, E_MenuS
  *     Police des textes
  * @param E_GameMode gameMode
  *     Mode de jeu du programme en cours
+ * @param E_MenuSelected selected
+ *     Selection du menu
  */
-void DisplayText(SDL_Surface* window, TTF_Font* font, E_GameMode gameMode)
+void DisplayText(SDL_Surface* window, TTF_Font* font, E_GameMode gameMode, E_MenuSelected selected)
 {
     SDL_Color black = {0, 0, 0};
+    SDL_Color selectColor = {200, 200, 100};
     SDL_Rect position;
 
     SDL_Surface *txtPlayer1, *txtPlayer2, *txtColor, *txtBlack, *txtWhite;
@@ -160,8 +178,9 @@ void DisplayText(SDL_Surface* window, TTF_Font* font, E_GameMode gameMode)
     txtOption1 = TTF_RenderText_Blended(font, "Aide aux mouvements", black);
     txtOption2 = TTF_RenderText_Blended(font, "Pas d'aide", black);
     txtScore = TTF_RenderText_Blended(font, "Score à atteindre :", black);
-    txtStart = TTF_RenderText_Blended(font, "Jouer", black);
-    txtQuit = TTF_RenderText_Blended(font, "Quitter", black);
+
+    txtStart = TTF_RenderText_Blended(font, "Jouer", (selected == START)? selectColor : black);
+    txtQuit = TTF_RenderText_Blended(font, "Quitter", (selected == QUIT)? selectColor : black);
 
     if (gameMode == HUMAN_HUMAN)
     {
@@ -284,9 +303,6 @@ void DisplayOverlays(SDL_Surface* window, TTF_Font* font, E_MenuSelected selecte
     // Textes
     SDL_Color black = {0, 0, 0};
 
-    char points[5];
-    sprintf(points, "%i", gameConfig.points);
-
     if (strlen(gameConfig.namePlayer1) > 0)
     {
         SDL_Surface *txtNamePlayer1 = TTF_RenderText_Blended(font, gameConfig.namePlayer1, black);
@@ -302,6 +318,9 @@ void DisplayOverlays(SDL_Surface* window, TTF_Font* font, E_MenuSelected selecte
         SDL_BlitSurface(txtNamePlayer2, NULL, window, &position);
         SDL_FreeSurface(txtNamePlayer2);
     }
+
+    char points[5];
+    sprintf(points, "%i", gameConfig.points);
 
     SDL_Surface *txtPoints = TTF_RenderText_Blended(font, points, black);
     position.x = 529 - txtPoints->w/2; position.y = 386 - txtPoints->h/2;
@@ -365,7 +384,7 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
     SDL_Rect position;
     position.x = 0; position.y = 0;
 
-    E_MenuSelected selected = OTHER;
+    E_MenuSelected selected = NONE;
     S_GameConfig gameConfig;
 
     gameConfig.player1Color = BLACK;
@@ -374,7 +393,7 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
     InitPlayersName(&gameConfig, gameMode, aiFunctions);
 
     SDL_BlitSurface(menu_bg, NULL, window, &position);
-    DisplayText(window, font, gameMode);
+    DisplayText(window, font, gameMode, selected);
     DisplayOverlays(window, font, selected, gameConfig);
 
     int finish = 0;
@@ -385,10 +404,12 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
         EventsMenu(&event, &finish, &gameConfig, &selected);
 
         // Affichage
-        if (event.type == SDL_MOUSEBUTTONUP || event.type == SDL_KEYUP)
+        if (event.type == SDL_MOUSEBUTTONUP ||
+            event.type == SDL_MOUSEBUTTONDOWN ||
+            event.type == SDL_KEYUP)
         {
             SDL_BlitSurface(menu_bg, NULL, window, &position);
-            DisplayText(window, font, gameMode);
+            DisplayText(window, font, gameMode, selected);
             DisplayOverlays(window, font, selected, gameConfig);
         }
 
