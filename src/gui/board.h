@@ -17,9 +17,11 @@ typedef struct
     unsigned int stake;
     EPlayer cubeOwner;
 
+    S_GameConfig gameConfig;
+
 } S_GameState;
 
-void InitGameState(S_GameState* gameState);
+void InitGameState(S_GameState* gameState, S_GameConfig gameConfig);
 
 void DisplayCheckers(SDL_Surface* window, S_GameState gameState);
 

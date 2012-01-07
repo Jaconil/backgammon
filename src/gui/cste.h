@@ -9,4 +9,8 @@
 #define MIN_POINTS 1
 #define MAX_POINTS 15
 
+#define CHECKER_W 40
+#define BORDER_W 15
+#define ZONE_W 52
+
 #endif
