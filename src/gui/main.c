@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
@@ -16,27 +17,29 @@
 
 int main(int argc, char *argv[])
 {
+    srand (time(NULL));
+
     // Analyse des arguments et chargement des API
-    S_AIFunctions aiFunctions[2];    
+    S_AIFunctions aiFunctions[2];
     InitAIStruct(aiFunctions);
 
     E_GameMode gameMode = ParseArgs(argc, argv, aiFunctions);
-    
+
     if (gameMode == ERROR)
         return EXIT_FAILURE;
-        
+
     // Chargement de la fenetre
     SDL_Surface *window = NULL;
     SDL_Surface *icon = NULL;
-    
+
     if (!InitWindow(&window, &icon))
         return EXIT_FAILURE;
-    
+
     // Affichage du menu
     DisplayMenu(window, gameMode, aiFunctions);
-    
+
     // Liberation des ressources
-    FreeWindow(icon);    
+    FreeWindow(icon);
     FreeAIStruct(aiFunctions);
 
     return EXIT_SUCCESS;

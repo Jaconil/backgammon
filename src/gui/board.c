@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
@@ -17,7 +18,25 @@
  */
 void RollDice(S_GameState* gameState)
 {
+    gameState->die1 = (rand() % 6) + 1;
+    gameState->die2 = (rand() % 6) + 1;
 
+    // Changement d'etat
+    if (gameState->currentStage == WAITING_FIRST_ROLL)
+    {
+        while (gameState->die1 == gameState->die2)
+        {
+            gameState->die1 = (rand() % 6) + 1;
+            gameState->die2 = (rand() % 6) + 1;
+        }
+
+        if (gameState->die1 > gameState->die2)
+            gameState->currentPlayer = EPlayer1;
+        else
+            gameState->currentPlayer = EPlayer2;
+
+        gameState->currentStage = FIRST_ROLL_POPUP;
+    }
 }
 
 /* Fonction de gestion des evenements du plateau
