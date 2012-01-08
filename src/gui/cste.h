@@ -6,6 +6,9 @@
 #define WIDTH 758
 #define HEIGHT 536
 
+#define CENTER_X 343
+#define CENTER_Y 245
+
 #define MIN_POINTS 1
 #define MAX_POINTS 15
 

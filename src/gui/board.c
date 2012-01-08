@@ -7,8 +7,64 @@
 
 #include "cste.h"
 #include "library.h"
+#include "gui.h"
 #include "menu.h"
 #include "board.h"
+
+/* Procedure qui lance les des aleatoirement
+ * @param S_GameState* gameState
+ *     Etat du jeu
+ */
+void RollDice(S_GameState* gameState)
+{
+
+}
+
+/* Fonction de gestion des evenements du plateau
+ * @param SDL_Event* event
+ *     Evenements de la fenetre
+ * @param S_GameState* gameState
+ *     Etat du jeu
+ * @return E_BoardSelected
+ *     Eventuel bouton clique
+ */
+E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
+{
+    E_BoardSelected clicked = NONE_BOARD;
+
+    SDL_WaitEvent(event);
+
+    if (event->type == SDL_QUIT)
+        clicked = QUIT_BOARD;
+
+    switch (gameState->currentStage)
+    {
+        case WAITING_FIRST_ROLL:
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONDOWN:
+                    // Bouton "Lancer"
+                    if (ClickRect(event, 293, 230, 100, 30))
+                        gameState->selected = ROLL;
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    gameState->selected = NONE_BOARD;
+
+                    // Bouton "Lancer"
+                    if (ClickRect(event, 293, 230, 100, 30))
+                        RollDice(gameState);
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+
+
+
+
+    return clicked;
+}
 
 /* Procedure d'initialisation de l'etat du jeu
  * @param S_GameState* gameState
@@ -18,6 +74,8 @@
  */
 void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
 {
+    int i;
+
     gameState->die1 = 0;
     gameState->die2 = 0;
 
@@ -26,6 +84,11 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
 
     gameState->gameConfig = gameConfig;
 
+    gameState->currentStage = WAITING_FIRST_ROLL;
+    gameState->currentZone = -1;
+
+    gameState->selected = NONE_BOARD;
+
     // On n'initialise pas le proprietaire du videau puisqu'il manque un etat "aucun joueur"
     // -> Verifier si la mise est superieure a 1 pour regarder le proprietaire
     gameState->stake = 1;
@@ -33,8 +96,6 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
     // On met a zero toutes les zones.
     // On n'initialise pas le joueur puisqu'il manque un etat "aucun joueur"
     // -> Toujours verifier que le nombre de pions est non nul avant de regarder le joueur
-    int i;
-
     for (i=0; i<28; i++)
         gameState->zones[i].nb_checkers = 0;
 
@@ -79,13 +140,14 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
     SDL_Surface *overlays = IMG_Load(DESIGN_PATH "overlays.png");
     SDL_Rect clip, position;
 
-    clip.y = 40; clip.w = 40; clip.h = 40;
+    clip.w = 40; clip.h = 40;
 
     // Dessin des pions sur les fleches
     for (i=0; i<24; i++)
     {
         if (gameState.zones[i].nb_checkers > 0)
         {
+            clip.y = 40;
             clip.x = (gameState.zones[i].player == EPlayer1)? 0 : CHECKER_W;
             if (gameState.gameConfig.player1Color == WHITE)
                 clip.x = CHECKER_W - clip.x;
@@ -111,11 +173,18 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
 
                 SDL_BlitSurface(overlays, &clip, window, &position);
             }
+
+            // Gestion de la selection des pions
+            if (gameState.currentZone == i)
+            {
+                clip.y = 80;
+                SDL_BlitSurface(overlays, &clip, window, &position);
+            }
         }
     }
 
     // Dessin des pions prisonniers
-    TTF_Font *font = TTF_OpenFont(DESIGN_PATH "numbers.ttf", 16);
+    TTF_Font *font = TTF_OpenFont(DESIGN_PATH "board.ttf", 16);
     SDL_Color black = {0,0,0}, white = {255,255,255};
     char nb_txt[4] = {'\0'};
     SDL_Surface *nb = NULL;
@@ -180,25 +249,62 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
     }
 
     // Dessin du videau
-    clip.x = 366; clip.y = 40; position.x = 324; clip.w = 36; clip.h = 36;
+    if (gameState.currentStage != WAITING_FIRST_ROLL)
+    {
+        clip.x = 366; clip.y = 40; position.x = 324; clip.w = 36; clip.h = 36;
 
-    if (gameState.stake == 1)
-        position.y = 227;
-    else if (gameState.cubeOwner == EPlayer1)
-        position.y = 90;
-    else
-        position.y = 364;
+        if (gameState.stake == 1)
+            position.y = 227;
+        else if (gameState.cubeOwner == EPlayer1)
+            position.y = 90;
+        else
+            position.y = 364;
 
-    SDL_BlitSurface(overlays, &clip, window, &position);
+        SDL_BlitSurface(overlays, &clip, window, &position);
 
-    sprintf(nb_txt, "%i", gameState.stake); nb_txt[3] = '\0';
-    nb = TTF_RenderText_Blended(font, nb_txt, black);
-    position.x = 342 - nb->w/2; position.y += 18 - nb->h/2;
-    SDL_BlitSurface(nb, NULL, window, &position);
-    SDL_FreeSurface(nb);
-
+        sprintf(nb_txt, "%i", gameState.stake); nb_txt[3] = '\0';
+        nb = TTF_RenderText_Blended(font, nb_txt, black);
+        position.x = 342 - nb->w/2; position.y += 18 - nb->h/2;
+        SDL_BlitSurface(nb, NULL, window, &position);
+        SDL_FreeSurface(nb);
+    }
 
     TTF_CloseFont(font);
+    SDL_FreeSurface(overlays);
+}
+
+/* Procedure pour afficher les boutons et popup
+ * @param SDL_Surface* window
+ *     Surface de la fenetre
+ * @param S_GameState gameState
+ *     Etat du jeu
+ */
+void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
+{
+    SDL_Surface *overlays = IMG_Load(DESIGN_PATH "overlays.png");
+    SDL_Rect clip, position;
+    TTF_Font *font = TTF_OpenFont(DESIGN_PATH "board.ttf", 20);
+    SDL_Color black = {0,0,0}, selectColor = {200, 200, 100};
+    SDL_Surface *txtRoll;
+
+
+    switch (gameState.currentStage)
+    {
+        case WAITING_FIRST_ROLL:
+            clip.x = 80; clip.y = 80; clip.w = 100; clip.h = 30;
+            position.x = CENTER_X - clip.w/2; position.y = CENTER_Y - clip.h/2;
+            SDL_BlitSurface(overlays, &clip, window, &position);
+
+            txtRoll = TTF_RenderText_Blended(font, "Lancer", (gameState.selected == ROLL)? selectColor : black);
+            position.x = CENTER_X - txtRoll->w/2; position.y = CENTER_Y - txtRoll->h/2;
+            SDL_BlitSurface(txtRoll, NULL, window, &position);
+            break;
+        default:
+            break;
+    }
+
+    TTF_CloseFont(font);
+    SDL_FreeSurface(txtRoll);
     SDL_FreeSurface(overlays);
 }
 
@@ -225,8 +331,8 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
     position.x = 0; position.y = 0;
 
     SDL_BlitSurface(board_bg, NULL, window, &position);
-
     DisplayCheckers(window, gameState);
+    DisplayBoardOverlays(window, gameState);
     //DisplayScore(window, gameConfig);
 
     int quit = 0, finish = 0;
@@ -240,18 +346,20 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
             event.type == SDL_KEYUP)
         {
             SDL_BlitSurface(board_bg, NULL, window, &position);
+            DisplayCheckers(window, gameState);
+            DisplayBoardOverlays(window, gameState);
+            //DisplayScore(window, gameConfig);
         }
 
         SDL_Flip(window);
 
         // Gestion des evenements
-        SDL_WaitEvent(&event);
-        switch(event.type)
+        E_MenuSelected button = EventsBoard(&event, &gameState);
+
+        if (button == QUIT_BOARD)
         {
-            case SDL_QUIT:
-                finish = 1;
-                quit = 1;
-                break;
+            finish = 1;
+            quit = 1;
         }
     }
 
