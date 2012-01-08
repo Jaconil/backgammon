@@ -16,7 +16,7 @@ typedef enum
 // Texte du plateau selectionne
 typedef enum
 {
-    ROLL,
+    BUTTON1,
     NONE_BOARD,
     QUIT_BOARD
 } E_BoardSelected;

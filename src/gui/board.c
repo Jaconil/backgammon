@@ -64,7 +64,7 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                 case SDL_MOUSEBUTTONDOWN:
                     // Bouton "Lancer"
                     if (ClickRect(event, 293, 230, 100, 30))
-                        gameState->selected = ROLL;
+                        gameState->selected = BUTTON1;
                     break;
                 case SDL_MOUSEBUTTONUP:
                     gameState->selected = NONE_BOARD;
@@ -75,6 +75,22 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     break;
             }
             break;
+        case FIRST_ROLL_POPUP:
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONDOWN:
+                    // Bouton "OK"
+                    if (ClickRect(event, 293, 305, 100, 30))
+                        gameState->selected = BUTTON1;
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    gameState->selected = NONE_BOARD;
+
+                    // Bouton "OK"
+                    if (ClickRect(event, 293, 305, 100, 30))
+                        gameState->currentStage = SELECT_ZONE_SRC;
+                    break;
+            }
         default:
             break;
     }
@@ -304,26 +320,70 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
     SDL_Rect clip, position;
     TTF_Font *font = TTF_OpenFont(DESIGN_PATH "board.ttf", 20);
     SDL_Color black = {0,0,0}, selectColor = {200, 200, 100};
-    SDL_Surface *txtRoll;
+    SDL_Surface *txtButton = NULL, *txtPopup = NULL;
 
 
     switch (gameState.currentStage)
     {
         case WAITING_FIRST_ROLL:
+            // Bouton "Lancer"
             clip.x = 80; clip.y = 80; clip.w = 100; clip.h = 30;
             position.x = CENTER_X - clip.w/2; position.y = CENTER_Y - clip.h/2;
             SDL_BlitSurface(overlays, &clip, window, &position);
 
-            txtRoll = TTF_RenderText_Blended(font, "Lancer", (gameState.selected == ROLL)? selectColor : black);
-            position.x = CENTER_X - txtRoll->w/2; position.y = CENTER_Y - txtRoll->h/2;
-            SDL_BlitSurface(txtRoll, NULL, window, &position);
+            txtButton = TTF_RenderText_Blended(font, "Lancer", (gameState.selected == BUTTON1)? selectColor : black);
+            position.x = CENTER_X - txtButton->w/2; position.y = CENTER_Y - txtButton->h/2;
+            SDL_BlitSurface(txtButton, NULL, window, &position);
             break;
+        case FIRST_ROLL_POPUP:
+            // Affichage des des
+            clip.y = 40; clip.w = 40; clip.h = 40;
+
+            clip.x = 126 + (gameState.die1 - 1) * clip.w;
+            position.x = CENTER_LEFT - clip.w/2; position.y = CENTER_Y - clip.h/2;
+            SDL_BlitSurface(overlays, &clip, window, &position);
+
+            clip.x = 126 + (gameState.die2 - 1) * clip.w;
+            position.x = CENTER_RIGHT - clip.w/2; position.y = CENTER_Y - clip.h/2;
+            SDL_BlitSurface(overlays, &clip, window, &position);
+
+            // Affichage de la popup
+            clip.x = 180; clip.y = 80; clip.w = 250; clip.h = 200;
+            position.x = CENTER_X - clip.w/2; position.y = CENTER_Y - clip.h/2;
+            SDL_BlitSurface(overlays, &clip, window, &position);
+
+            txtPopup = TTF_RenderText_Blended(font, "Le joueur", black);
+            position.x = CENTER_X - txtPopup->w/2; position.y = 180;
+            SDL_BlitSurface(txtPopup, NULL, window, &position);
+
+            position.y += txtPopup->h;
+            if (gameState.currentPlayer == EPlayer1)
+                txtPopup = TTF_RenderText_Blended(font, gameState.gameConfig.namePlayer1, black);
+            else
+                txtPopup = TTF_RenderText_Blended(font, gameState.gameConfig.namePlayer2, black);
+            position.x = CENTER_X - txtPopup->w/2;
+            SDL_BlitSurface(txtPopup, NULL, window, &position);
+
+            position.y += txtPopup->h;
+            txtPopup = TTF_RenderText_Blended(font, "commence.", black);
+            position.x = CENTER_X - txtPopup->w/2;
+            SDL_BlitSurface(txtPopup, NULL, window, &position);
+
+            // Bouton de la popup
+             clip.x = 80; clip.y = 80; clip.w = 100; clip.h = 30;
+            position.x = CENTER_X - clip.w/2; position.y = 305;
+            SDL_BlitSurface(overlays, &clip, window, &position);
+
+            txtButton = TTF_RenderText_Blended(font, "OK", (gameState.selected == BUTTON1)? selectColor : black);
+            position.x = CENTER_X - txtButton->w/2; position.y += clip.h/2 - txtButton->h/2;
+            SDL_BlitSurface(txtButton, NULL, window, &position);
         default:
             break;
     }
 
     TTF_CloseFont(font);
-    SDL_FreeSurface(txtRoll);
+    SDL_FreeSurface(txtButton);
+    SDL_FreeSurface(txtPopup);
     SDL_FreeSurface(overlays);
 }
 

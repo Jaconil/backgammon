@@ -9,6 +9,9 @@
 #define CENTER_X 343
 #define CENTER_Y 245
 
+#define CENTER_LEFT 172
+#define CENTER_RIGHT 514
+
 #define MIN_POINTS 1
 #define MAX_POINTS 15
 
