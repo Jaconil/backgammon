@@ -11,6 +11,7 @@
     #define DLSYM dlsym
 #endif
 
+#include "structures.h"
 #include "library.h"
 
 /* Procédure qui initialise la structure de stockage des fonctions de l'API
@@ -22,7 +23,7 @@ void InitAIStruct(S_AIFunctions* aiFunctions)
     int i = 0;
 
     for (i=0; i<2; i++)
-    {    
+    {
         aiFunctions[i].ai = NULL;
         aiFunctions[i].AI_InitLibrary = NULL;
         aiFunctions[i].AI_StartMatch = NULL;
@@ -43,7 +44,7 @@ void FreeAIStruct(S_AIFunctions* aiFunctions)
 {
     if (aiFunctions[0].ai != NULL)
         dlclose(aiFunctions[0].ai);
-        
+
     if (aiFunctions[1].ai != NULL)
         dlclose(aiFunctions[1].ai);
 }
@@ -65,17 +66,17 @@ int LoadAPI(char* path, S_AIFunctions* aiFunctions, int index)
 		fprintf(stderr, "Erreur de chargement de l'API %s\n", path);
 		return 0;
 	}
-        
-    if ((aiFunctions[index].AI_InitLibrary = (pfInitLibrary)DLSYM(aiFunctions[index].ai, "InitLibrary")) == NULL) return 0;
-    if ((aiFunctions[index].AI_StartMatch = (pfStartMatch)DLSYM(aiFunctions[index].ai, "StartMatch")) == NULL) return 0;    
-    if ((aiFunctions[index].AI_StartGame = (pfStartGame)DLSYM(aiFunctions[index].ai, "StartGame")) == NULL) return 0;   
-    if ((aiFunctions[index].AI_EndGame = (pfEndGame)DLSYM(aiFunctions[index].ai, "EndGame")) == NULL) return 0;       
-    if ((aiFunctions[index].AI_EndMatch = (pfEndMatch)DLSYM(aiFunctions[index].ai, "EndMatch")) == NULL) return 0;   
-    if ((aiFunctions[index].AI_DoubleStack = (pfDoubleStack)DLSYM(aiFunctions[index].ai, "DoubleStack")) == NULL) return 0;   
-    if ((aiFunctions[index].AI_TakeDouble = (pfTakeDouble)DLSYM(aiFunctions[index].ai, "TakeDouble")) == NULL) return 0;   
-    if ((aiFunctions[index].AI_MakeDecision = (pfMakeDecision)DLSYM(aiFunctions[index].ai, "MakeDecision")) == NULL) return 0;   
 
-    
+    if ((aiFunctions[index].AI_InitLibrary = (pfInitLibrary)DLSYM(aiFunctions[index].ai, "InitLibrary")) == NULL) return 0;
+    if ((aiFunctions[index].AI_StartMatch = (pfStartMatch)DLSYM(aiFunctions[index].ai, "StartMatch")) == NULL) return 0;
+    if ((aiFunctions[index].AI_StartGame = (pfStartGame)DLSYM(aiFunctions[index].ai, "StartGame")) == NULL) return 0;
+    if ((aiFunctions[index].AI_EndGame = (pfEndGame)DLSYM(aiFunctions[index].ai, "EndGame")) == NULL) return 0;
+    if ((aiFunctions[index].AI_EndMatch = (pfEndMatch)DLSYM(aiFunctions[index].ai, "EndMatch")) == NULL) return 0;
+    if ((aiFunctions[index].AI_DoubleStack = (pfDoubleStack)DLSYM(aiFunctions[index].ai, "DoubleStack")) == NULL) return 0;
+    if ((aiFunctions[index].AI_TakeDouble = (pfTakeDouble)DLSYM(aiFunctions[index].ai, "TakeDouble")) == NULL) return 0;
+    if ((aiFunctions[index].AI_MakeDecision = (pfMakeDecision)DLSYM(aiFunctions[index].ai, "MakeDecision")) == NULL) return 0;
+
+
 
     return 1;
 }

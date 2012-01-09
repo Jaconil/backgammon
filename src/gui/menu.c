@@ -6,7 +6,7 @@
 #include <SDL/SDL_ttf.h>
 
 #include "cste.h"
-#include "library.h"
+#include "structures.h"
 #include "gui.h"
 #include "menu.h"
 #include "board.h"
