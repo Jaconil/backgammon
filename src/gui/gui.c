@@ -62,3 +62,22 @@ void FreeWindow(SDL_Surface* icon)
     SDL_Quit();
 }
 
+/* Fonction qui indique si l'utilisateur a clique sur un rectangle
+ * @param SDL_Event* event
+ *     Evenements de la fenetre
+ * @param int x
+ *     Position x du rectangle
+ * @param int y
+ *     Position y du rectangle
+ * @param int w
+ *     Largeur du rectangle
+ * @param int h
+ *     Hauteur du rectangle
+ * @return int
+ *     1 si le clic est dans le rectangle, 0 sinon
+ */
+int ClickRect(SDL_Event* event, int x, int y, int w, int h)
+{
+    return (event->button.x >= x && event->button.x <= x + w &&
+            event->button.y >= y && event->button.y <= y + h);
+}

@@ -7,27 +7,9 @@
 
 #include "cste.h"
 #include "library.h"
+#include "gui.h"
 #include "menu.h"
-
-/* Fonction qui indique si l'utilisateur a clique sur un rectangle
- * @param SDL_Event* event
- *     Evenements de la fenetre
- * @param int x
- *     Position x du rectangle
- * @param int y
- *     Position y du rectangle
- * @param int w
- *     Largeur du rectangle
- * @param int h
- *     Hauteur du rectangle
- * @return int
- *     1 si le clic est dans le rectangle, 0 sinon
- */
-int ClickRect(SDL_Event* event, int x, int y, int w, int h)
-{
-    return (event->button.x >= x && event->button.x <= x + w &&
-            event->button.y >= y && event->button.y <= y + h);
-}
+#include "board.h"
 
 /* Procédure de saisie du nom d'un joueur
  * @param char** name
@@ -72,20 +54,22 @@ void TextInput(char* name, SDL_keysym key)
 /* Procédure de gestion des evenements du menu
  * @param SDL_Event* event
  *     Evenements de la fenetre
- * @param int* finish
- *     Indicateur de la fin du programme
  * @param S_GameConfig gameConfig
  *     Structure de configuration du jeu
  * @param E_MenuSelected selected
  *     Selection du menu
+ * @return E_MenuSelected
+ *     Eventuel bouton clique
  */
-void EventsMenu(SDL_Event* event, int* finish, S_GameConfig* gameConfig, E_MenuSelected* selected)
+E_MenuSelected EventsMenu(SDL_Event* event, S_GameConfig* gameConfig, E_MenuSelected* selected)
 {
+    E_MenuSelected clicked = NONE;
+
     SDL_WaitEvent(event);
     switch(event->type)
     {
         case SDL_QUIT:
-            *finish = 1;
+            clicked = QUIT;
             break;
         case SDL_MOUSEBUTTONDOWN:
             if (ClickRect(event, 450, 446, 150, 45))
@@ -100,13 +84,13 @@ void EventsMenu(SDL_Event* event, int* finish, S_GameConfig* gameConfig, E_MenuS
             {
                 // Boutons
                 if (ClickRect(event, 450, 446, 150, 45))
-                    *finish = 1;
+                    clicked = QUIT;
 
                 if (ClickRect(event, 158, 446, 150, 45))
                 {
-                    // TODO: Fonction de jeu
+                    if (strlen(gameConfig->namePlayer1) > 0 && strlen(gameConfig->namePlayer2) > 0)
+                        clicked = START;
                 }
-
 
                 // Sélection des zones de texte
                 if (ClickRect(event, 379, 126, 300, 40))
@@ -151,6 +135,8 @@ void EventsMenu(SDL_Event* event, int* finish, S_GameConfig* gameConfig, E_MenuS
 
             break;
     }
+
+    return clicked;
 }
 
 /* Procédure d'affichage des textes
@@ -401,8 +387,6 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
 
     while(!finish)
     {
-        EventsMenu(&event, &finish, &gameConfig, &selected);
-
         // Affichage
         if (event.type == SDL_MOUSEBUTTONUP ||
             event.type == SDL_MOUSEBUTTONDOWN ||
@@ -414,7 +398,16 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
         }
 
         SDL_Flip(window);
+
+        // Gestion des evenements
+        E_MenuSelected button = EventsMenu(&event, &gameConfig, &selected);
+
+        if (button == START)
+            finish = DisplayBoard(window, gameMode, aiFunctions, gameConfig);
+        else if (button == QUIT)
+            finish = 1;
     }
 
+    TTF_CloseFont(font);
     SDL_FreeSurface(menu_bg);
 }
