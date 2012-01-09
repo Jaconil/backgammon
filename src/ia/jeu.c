@@ -2,219 +2,116 @@
 # include <stdio.h>
 # include <time.h>
 
-# include "../../backgammon.h"
+# include "backgammon.h"
 # include "jeu.h"
 
 
 
 int min(int a, int b){
 	int Result;
-
+	
 	if(a<b){
 		Result=a;
 	} else {
 		Result=b;
 	}
-
+	
 	return Result;
 }
 
 int max(int a, int b){
 	int Result;
-
+	
 	if(a>b){
 		Result=a;
 	} else {
 		Result=b;
 	}
+	
+	return Result;
+}
 
+EPosition minBeEaten(const SZone* zones, EPosition a, EPosition b){
+	EPosition Result;
+	
+	if((probabilityOfBeEaten(zones, a))<=(probabilityOfBeEaten(zones, b))){
+		Result=a;
+	} else {
+		Result=b;
+	}
+	
 	return Result;
 }
 
 int nbMove(int a, int b){
 	int Result;
-
+	
 	if(a==b){
 		Result=4;
 	} else {
 		Result=2;
 	}
-
+	
 	return Result;
 }
 
 int distanceToWin(const SZone* zones){
 	int Result, i;
-
+	
 	Result=0;
-
+	
 	for(i=EPos_1;i<=EPos_24;i++){
 		if(zones[i].player==EPlayer1){
 			// i+1 est le nombre de déplacement restant pour sortir le pion
 			Result=Result+((i+1)*zones[i].nb_checkers);
 		}
 	}
-
+	
 	return Result;
 }
 
 EPosition LastChecker1(const SZone* zones){
 	EPosition Result, position;
+	
 	Result=EPos_OutP1;
+	
 	if(zones[EPos_BarP1].nb_checkers>0){
 		Result=EPos_BarP1;
 	} else {
 		position=EPos_24;
+		
 		// tant que Resultat n'a pas changé et qu'on est dans une case de 1 à 24
 		while ((Result==EPos_OutP1)&&(position>=EPos_1)) {
 			if((zones[position].player==EPlayer1)&&(zones[position].nb_checkers>0)){
 				Result=position;
 			} else {
 				position=position-1;
-			}
-		}
+			}	
+		}	
+		
 	}
+	
 	return Result;
 }
 
-SZone getSZone(const SGameState * const gameState, int pos) {
-    return gameState->zones[pos];
-}
-
-int conversionIntToEPosition(int entier) {
-    int toReturn;
-
-    switch(entier){
-	case 1:
-		toReturn=EPos_1;
-		break;
-	case 2:
-        toReturn=EPos_2;
-        break;
-    case 3:
-        toReturn=EPos_3;
-        break;
-    case 4:
-        toReturn=EPos_4;
-        break;
-    case 5:
-        toReturn=EPos_5;
-        break;
-    case 6:
-        toReturn=EPos_6;
-        break;
-    case 7:
-        toReturn=EPos_7;
-        break;
-    case 8:
-        toReturn=EPos_8;
-        break;
-    case 9:
-        toReturn=EPos_9;
-        break;
-    case 10:
-        toReturn=EPos_10;
-        break;
-    case 11:
-        toReturn=EPos_11;
-        break;
-    case 12:
-        toReturn=EPos_12;
-        break;
-    case 13:
-        toReturn=EPos_13;
-        break;
-    case 14:
-        toReturn=EPos_14;
-        break;
-    case 15:
-        toReturn=EPos_15;
-        break;
-    case 16:
-        toReturn=EPos_16;
-        break;
-    case 17:
-        toReturn=EPos_17;
-        break;
-    case 18:
-        toReturn=EPos_18;
-        break;
-    case 19:
-        toReturn=EPos_19;
-        break;
-    case 20:
-        toReturn=EPos_20;
-        break;
-    case 21:
-        toReturn=EPos_21;
-        break;
-    case 22:
-        toReturn=EPos_22;
-        break;
-    case 23:
-        toReturn=EPos_23;
-        break;
-    case 24:
-        toReturn=EPos_24;
-        break;
-	default:
-		return 0;
-		break;
-	}
-
-    return toReturn;
-}
-/*
-int movePossible(const SGameState * const gameState, int position) {
-
-}
-*/
-EPosition LastChecker(const SGameState * const gameState){
-    EPosition toReturn;
-    SZone temp;
-    int i;
-    int position;
-    int trouve;
-
-    trouve=0;
-
-    temp=getSZone(gameState,EPos_BarP1);
-    if (temp.nb_checkers==0) {
-        while (trouve==0 && i>=1){
-            position=conversionIntToEPosition(i);
-            temp=getSZone(gameState,position);
-            if(temp.player==EPlayer1 && temp.nb_checkers>0) {
-                trouve=1;
-                toReturn=i;
-            } else {
-                i++;
-            }
-        }
-    } else {
-        toReturn=EPos_BarP1;
-    }
-
-    return toReturn;
-}
-
 //version numéro2 de LastChecker avec un paramètre N, Nieme dernier pion
-EPosition LastCheckerAtN(const SZone* zones, int N){
+EPosition LastChecker2(const SZone* zones, int N){
 	EPosition Result, position;
 	int k;
-
+	
 	//initialisation dans le cas ou tous les pions sont sortis
 	Result=EPos_OutP1;
 	k=N;
-
+	
 	//S'il y a des pion sur la barre
 	k=k-zones[EPos_BarP1].nb_checkers;
-
+	
 	if(k<1){
 		Result=EPos_BarP1;
 	} else {
 		//on se place sur la case 24 et on peut aller jusqu'a la 1
 		position=EPos_24;
-
+		
 		// tant que Resultat n'a pas changé et qu'on est dans une case de 1 à 24
 		while ((Result==EPos_OutP1)&&(position>=EPos_1)){
 			if(zones[position].player==EPlayer1){
@@ -227,7 +124,7 @@ EPosition LastCheckerAtN(const SZone* zones, int N){
 			position=position-1;
 		}
 	}
-
+	
 	return Result;
 }
 
@@ -238,7 +135,7 @@ int possibleCase(SZone arrow){
 double strikeJet(int distance){
 
 	switch(distance){
-	case 1:
+	case 1: 
 		return 30.56;
 		break;
 	case 2:
@@ -296,41 +193,125 @@ double strikeJet(int distance){
 
 }
 // fonction qui évalue la probabilité de se faire manger si l'on bouge un pion vers "position"
-double probabilityToBeEaten(const SZone* zones, EPosition position){
+double probabilityOfBeEaten(const SZone* zones, EPosition position){
 	double Result;
 	int i;
-
+	
 	Result=0;
-
+	
 	if((zones[position].player==EPlayer1)&&(zones[position].nb_checkers==0)){
 		for(i=position-1;i>=EPos_1;i--){
 			if((zones[i].player==EPlayer2)&&(zones[i].nb_checkers>0)){
 				Result=max(Result, strikeJet(position-i));
 			}
 		}
+		// cas ou il y a un pion dans la barre adverse
+		if(zones[EPos_BarP2].nb_checkers>0){
+			Result=max(Result, strikeJet(position+1));
+		}
+	} else {
+		Result=-1;
 	}
-
+	
 	return Result;
 }
 
-SMove moveLastChecker(const SGameState * const gameState, SMove moves[4]) {
-    EPosition lastPosition;
-    SMove toReturn/*[4]/**/;
-    unsigned int die1;
-    unsigned int die2;
-    die1=gameState->die1;
-    die2=gameState->die2;
-    int nombreMove=nbMove(die1,die2);
-    lastPosition=LastChecker(gameState);
+void move(SMove* moves, EPosition src, EPosition dest){
+	moves->src_point=src;
+	moves->dest_point=dest;
+}
 
-    return toReturn;
+int getCheckerIn(const SZone* zones, SMove* moves, int* die1, int* die2){
+	EPosition a, b, x;
+	int Result;
+	
+	a=24-*die1;
+	b=24-*die2;
+	
+	// si l'on ne peut faire aucun déplacement
+	if((!possibleCase(zones[a]))&&(!possibleCase(zones[b]))){
+		Result=0;
+	} else {
+		Result=1;
+		// si c'est le déplacement en a qui n'est pas possible
+		if(!possibleCase(zones[a])){
+			move(moves, EPos_BarP1, b);
+			// il faut dire qu'on a jouer le dé 2 en l'écrasant
+			*die2=*die1;
+		} else if(!possibleCase(zones[b])){
+			move(moves, EPos_BarP1, a);
+			*die2=*die1;
+		} else {
+			x=minBeEaten(zones, a, b);
+			move(moves, EPos_BarP1, x);
+			if(a==x){
+				*die1=*die2;
+			} else {
+				*die2=*die1;
+			}
+		}
+	//les deux dés on la même valeur de façon a ne pas se tromper pour le 2eme déplacement
+	}
+	
+	return Result;
+}
+
+int checkersInHomeBoard(const SZone* zones){
+	int Result, nbCheckers, i;
+	
+	nbCheckers=zones[EPos_OutP1].nb_checkers;
+	
+	for(i=EPos_1;i<=EPos_6;i++){
+		if(zones[i].player==EPlayer1){
+			nbCheckers=nbCheckers+zones[i].nb_checkers;
+		}
+	}
+	
+	if(nbCheckers==15){
+		Result=1;
+	} else {
+		Result=0;
+	}
+	
+	return Result;
+}
+
+int getCheckerOut(const SZone* zones, SMove* moves, int* die1, int* die2){
+	int Result, maxi, mini;
+	
+	maxi=max(*die1, *die2);
+	mini=min(*die1, *die2);
+	Result=1;
+	
+	// si un pion peu être entré directement (d'abord le plus éloigné)
+	if((zones[maxi-1].player==EPlayer1)&&(zones[maxi-1].nb_checkers>0)){
+		move(moves, maxi-1, EPos_OutP1);
+		// si on a utilisé le dé 1
+		if(*die1==maxi){
+			*die1=*die2;
+		} else {
+			*die2=*die1;
+		}
+	} else if((zones[mini-1].player==EPlayer1)&&(zones[mini-1].nb_checkers>0)){
+		move(moves, mini-1, EPos_OutP1);
+		if(*die1==mini){
+			*die1=*die2;
+		} else {
+			*die2=*die1;
+		}
+	}
+	
+	return Result;
 }
 
 void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned int lastTimeError){
 	/*Technique du "je fais avancer le dernier pion"*/
 	EPosition lastPosition;
-	int i, j, m, impossible;
-
+	int i, j, m, die1, die2, impossible;
+	
+	die1=gameState->die1;
+	die2=gameState->die2;
+	
 	// i sera le Nieme dernier pion. On l'initialise à 1 qui correspond au dernier
 	i=1;
 	// j est l'index des coups à jouer, 0 à l'initialisation
@@ -339,41 +320,37 @@ void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned i
 	m=nbMove(gameState->die1, gameState->die2);
 	// impossible est à 1 s'il n'est pas possible d'effectuer d'autres déplacements
 	impossible=0;
-
+	
 	// tant qu'il reste des déplacements à effectuer
 	while((j<m)&&!(impossible)){
-
-		lastPosition=LastChecker1(gameState->zones);
+	
+		lastPosition=LastChecker2(gameState->zones, i);
 		// cas ou le dernier pion est sur la barre
 		if(lastPosition==EPos_BarP1){
-			// On cherche d'abord a effectuer le plus grand déplacement
-			if(possibleCase(gameState->zones[lastPosition-max(gameState->die1, gameState->die2)])){
-				moves[j].src_point=lastPosition;
-				moves[j].dest_point=lastPosition-max(gameState->die1, gameState->die2);
-				j++;
-				i=1;
-			// sinon on cherche a effectuer le plus petit déplacement
-			} else if(possibleCase(gameState->zones[lastPosition-min(gameState->die1, gameState->die2)])){
-				moves[j].src_point=lastPosition;
-				moves[j].dest_point=lastPosition-min(gameState->die1, gameState->die2);
+			if(getCheckerIn(gameState->zones, &moves[j], &die1, &die2)){
 				j++;
 				i=1;
 			} else {
-				// sinon c'est que le déplacement est impossible et on ne peut plus jouer
-				impossible=1;
+				impossible=1;	
 			}
-		} else {
-
+		// cas ou les pions sont près à être rentrés
+		} else if(checkersInHomeBoard(gameState->zones)){
+			if(getCheckerOut(gameState->zones, &moves[j], &die1, &die2)){
+				j++;
+				i=1;
+			} else {
+				impossible=1;	
+			}
 		}
 	}
 
-
+	
 }
 
 void initGameBoard(SZone* gameBoard){
 	SZone arrow; // une flèche du plateau;
 	int i;
-
+	
 	arrow.player=EPlayer2;
 	arrow.nb_checkers=0;
 	for(i=0;i<28;i++){
@@ -405,7 +382,8 @@ void initGameBoard(SZone* gameBoard){
 }
 
 
-int main (int argc, char *argv[])
+int 
+main (int argc, char *argv[])
 {
 	SGameState theGame;
 	SMove moveTab[4];
@@ -416,14 +394,14 @@ int main (int argc, char *argv[])
 	theGame.scoreP2=0;
 	theGame.stake=1;
 	srand(time(NULL)); //initialisation de la fonction de randomisation
-
-
+		
+	
 	//while ((theGame.zones[EPos_OutP1].nb_checkers<15) &&
 	//		(theGame.zones[EPos_OutP2].nb_checkers<15)) {
 		theGame.die1=(rand()%6)+1;	// die1
 		theGame.die2=(rand()%6)+1;	// die2
-
-
+		
+		
 		//MakeDecision(&theGame, moveTab, error);
 	//}
 	for(i=0;i<28;i++){
