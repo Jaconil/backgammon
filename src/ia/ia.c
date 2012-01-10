@@ -180,32 +180,58 @@ int mouvementPossible(const SGameState * const gameState, EPosition source, int 
 void decision2Move(const SGameState * const gameState) {
 	int i;//incrémanteur 1ère boucle
 	int j;//incrémanteur 2ème boucle
+	int numPassage;
 	
 	int de1;
 	int de2;
+	
 	SGameState plateau1;
 	SGameState plateau2;
 	
-	int arret1;
-	int arret2;
+	int mouvementCompletTrouve;
+	int mouvementPremierTrouve;
+	int mouvementSecondTrouve;
 	
-	arret1=arret2=FALSE;
+	mouvementCompletTrouve=FALSE;
+	mouvementPremierTrouve=FALSE;
+	mouvementSecondTrouve=FALSE;
+	numPassage=1;
 	
-	de1=gameState->die1;
-	de2=gameState->die2;
-	
-	while (!arret1) {
-		/**
-		 RENDU ICI !!!!!!!!!!!!!!!!!
-		 (mettre une variable qui indique si c'est le premier passage ou le deuxième)
-		 **/
-		memcpy(&plateau1,&gameState,sizeof(gameState));
-		if (nombrePionBar(plateau1)) {//si il y a des prisonniers
-			arret1=TRUE; // seul mouvement autorisé donc on arrête après
-			
+	while (!mouvementCompletTrouve) {
+		if (numPassage==1) {//le premier dé utilisé est le dé 1
+			de1=gameState->die1;
+			de2=gameState->die2;
 		} else {
-			
+			de1=gameState->die2;
+			de2=gameState->die1;
 		}
+		
+		while (numPassage<=2 && !mouvementPremierTrouve){
+			memcpy(&plateau1,&gameState,sizeof(gameState));
+			if (nombrePionBar(plateau1)) {//si il y a des prisonniers
+				if (nombrePionBar==1) {//si il n'y a qu'un prisonnier
+					if (mouvementPossible(plateau1,EPos_BarP1,de1)) {//si le premier mouvement est possible
+						
+					}//sinon il faut tester avec l'autre dé et donc passer au passage suivant
+				} else { //si il y a deux prisonniers
+					
+				}
+			} else {
+				
+			}
+			
+			while (!mouvementSecondTrouve) {
+				//copie des lignes du dessus
+			}
+			numPassage++;
+		}
+	}
+}
+
+void decision2Move2(const SGameState * const gameState) {
+	int nbPrisonniers;
+	if(nombrePionBar!=0){//si il y a des prisonniers
+		if 
 	}
 }
 
