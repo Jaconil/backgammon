@@ -11,6 +11,7 @@
 #endif
 
 #include "cste.h"
+#include "structures.h"
 #include "library.h"
 #include "gui.h"
 #include "menu.h"

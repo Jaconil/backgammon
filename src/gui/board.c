@@ -7,9 +7,8 @@
 #include <SDL/SDL_ttf.h>
 
 #include "cste.h"
-#include "library.h"
+#include "structures.h"
 #include "gui.h"
-#include "menu.h"
 #include "board.h"
 
 /* Procedure qui lance les des aleatoirement
@@ -52,6 +51,7 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
     E_BoardSelected clicked = NONE_BOARD;
 
     SDL_WaitEvent(event);
+    int zone = -1;
 
     if (event->type == SDL_QUIT)
         clicked = QUIT_BOARD;
@@ -91,6 +91,21 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                         gameState->currentStage = SELECT_ZONE_SRC;
                     break;
             }
+            break;
+        case SELECT_ZONE_SRC:
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONUP:
+                    // Selection d'une zone source
+                    zone = ClickZone(event);
+                    if (IsValidSrc(zone, gameState))
+                    {
+                        gameState->currentZone = zone;
+                        gameState->currentStage = SELECT_ZONE_DST;
+                    }
+                    break;
+            }
+            break;
         default:
             break;
     }
@@ -130,9 +145,15 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
 
     // On met a zero toutes les zones.
     // On n'initialise pas le joueur puisqu'il manque un etat "aucun joueur"
+    // Sauf pour les sorties et la barre
     // -> Toujours verifier que le nombre de pions est non nul avant de regarder le joueur
     for (i=0; i<28; i++)
         gameState->zones[i].nb_checkers = 0;
+
+    gameState->zones[EPos_BarP1].player = EPlayer1;
+    gameState->zones[EPos_BarP2].player = EPlayer2;
+    gameState->zones[EPos_OutP1].player = EPlayer1;
+    gameState->zones[EPos_OutP2].player = EPlayer2;
 
     // Chaque joueur commence avec deux dames sur sa case 24,
     // trois sur sa case 8, et cinq sur ses cases 13 et 6.
@@ -188,11 +209,11 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
                 clip.x = CHECKER_W - clip.x;
 
             // Calcul de la position x des pions
-            position.x = BORDER_W + (ZONE_W - CHECKER_W)/2;
+            position.x = BORDER + (ZONE_W - CHECKER_W)/2;
             position.x += ZONE_W * ((i < 12)? 11-i : i-12); // decalage des fleches
 
             if (i > 17 || i < 6)
-                position.x += 2*BORDER_W;
+                position.x += 2*BORDER;
 
             double step = 40.0;
 
@@ -202,9 +223,9 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
             for (j=0; j<gameState.zones[i].nb_checkers; j++)
             {
                 if (i < 12)
-                    position.y = 450 - BORDER_W - j*step;
+                    position.y = 450 - BORDER - j*step;
                 else
-                    position.y = BORDER_W + j*step;
+                    position.y = BORDER + j*step;
 
                 SDL_BlitSurface(overlays, &clip, window, &position);
             }
@@ -227,6 +248,7 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
     if (gameState.zones[EPos_BarP1].nb_checkers > 0)
     {
         clip.x = (gameState.gameConfig.player1Color == BLACK) ? 0 : 40;
+        clip.y = (gameState.currentZone == EPos_BarP1) ? 80 : 40;
         position.x = 322; position.y = 185;
         SDL_BlitSurface(overlays, &clip, window, &position);
 
@@ -245,6 +267,7 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
     if (gameState.zones[EPos_BarP2].nb_checkers > 0)
     {
         clip.x = (gameState.gameConfig.player1Color == BLACK) ? 40 : 0;
+        clip.y = (gameState.currentZone == EPos_BarP2) ? 80 : 40;
         position.x = 322; position.y = 265;
         SDL_BlitSurface(overlays, &clip, window, &position);
 
@@ -268,7 +291,7 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
         clip.y = 40;
         for (i=0; i<gameState.zones[EPos_OutP1].nb_checkers; i++)
         {
-            position.y = BORDER_W + i*12;
+            position.y = 463 - i*12;
             SDL_BlitSurface(overlays, &clip, window, &position);
         }
     }
@@ -278,7 +301,7 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
         clip.y = 52;
         for (i=0; i<gameState.zones[EPos_OutP2].nb_checkers; i++)
         {
-            position.y = 463 - i*12;
+            position.y = BORDER + i*12;
             SDL_BlitSurface(overlays, &clip, window, &position);
         }
     }
@@ -336,16 +359,7 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
             SDL_BlitSurface(txtButton, NULL, window, &position);
             break;
         case FIRST_ROLL_POPUP:
-            // Affichage des des
-            clip.y = 40; clip.w = 40; clip.h = 40;
-
-            clip.x = 126 + (gameState.die1 - 1) * clip.w;
-            position.x = CENTER_LEFT - clip.w/2; position.y = CENTER_Y - clip.h/2;
-            SDL_BlitSurface(overlays, &clip, window, &position);
-
-            clip.x = 126 + (gameState.die2 - 1) * clip.w;
-            position.x = CENTER_RIGHT - clip.w/2; position.y = CENTER_Y - clip.h/2;
-            SDL_BlitSurface(overlays, &clip, window, &position);
+            DisplayDice(window, gameState);
 
             // Affichage de la popup
             clip.x = 180; clip.y = 80; clip.w = 250; clip.h = 200;
@@ -377,13 +391,70 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
             txtButton = TTF_RenderText_Blended(font, "OK", (gameState.selected == BUTTON1)? selectColor : black);
             position.x = CENTER_X - txtButton->w/2; position.y += clip.h/2 - txtButton->h/2;
             SDL_BlitSurface(txtButton, NULL, window, &position);
+            break;
         default:
+            DisplayDice(window, gameState);
             break;
     }
 
     TTF_CloseFont(font);
     SDL_FreeSurface(txtButton);
     SDL_FreeSurface(txtPopup);
+    SDL_FreeSurface(overlays);
+}
+
+/* Procedure pour afficher les des
+ * @param SDL_Surface* window
+ *     Surface de la fenetre
+ * @param S_GameState gameState
+ *     Etat du jeu
+ */
+void DisplayDice(SDL_Surface* window, S_GameState gameState)
+{
+    SDL_Surface *overlays = IMG_Load(DESIGN_PATH "overlays.png");
+    SDL_Rect clip, positionDie1, positionDie2;
+    clip.y = 40; clip.w = 40; clip.h = 40;
+    clip.x = 126 + (gameState.die1 - 1) * clip.w;
+
+    positionDie1.y = CENTER_Y - clip.h/2;
+    positionDie2.y = CENTER_Y - clip.h/2;
+
+    if (gameState.currentStage == FIRST_ROLL_POPUP)
+    {
+        positionDie1.x = CENTER_LEFT - clip.w/2;
+        positionDie2.x = CENTER_RIGHT - clip.w/2;
+    }
+    else
+    {
+        if (gameState.currentPlayer == EPlayer1)
+        {
+            positionDie1.x = CENTER_LEFT - 10 - clip.w;
+            positionDie2.x = CENTER_LEFT + 10;
+        }
+        else
+        {
+            positionDie1.x = CENTER_RIGHT - 10 - clip.w;
+            positionDie2.x = CENTER_RIGHT + 10;
+        }
+    }
+
+    SDL_BlitSurface(overlays, &clip, window, &positionDie1);
+
+    if (gameState.die1 == gameState.die2)
+    {
+        positionDie1.x -= 20 - clip.w;
+        SDL_BlitSurface(overlays, &clip, window, &positionDie1);
+    }
+
+    clip.x = 126 + (gameState.die2 - 1) * clip.w;
+    SDL_BlitSurface(overlays, &clip, window, &positionDie2);
+
+    if (gameState.die1 == gameState.die2)
+    {
+        positionDie2.x += 20 + clip.w;
+        SDL_BlitSurface(overlays, &clip, window, &positionDie2);
+    }
+
     SDL_FreeSurface(overlays);
 }
 

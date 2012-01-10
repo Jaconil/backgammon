@@ -4,6 +4,7 @@
 #include <SDL/SDL_ttf.h>
 
 #include "cste.h"
+#include "structures.h"
 #include "gui.h"
 
 /* Fonction d'initialisation de la SDL,de la fenetre et des surfaces
@@ -80,4 +81,68 @@ int ClickRect(SDL_Event* event, int x, int y, int w, int h)
 {
     return (event->button.x >= x && event->button.x <= x + w &&
             event->button.y >= y && event->button.y <= y + h);
+}
+
+/* Fonction qui renvoie la zone sur laquelle on a clique
+ * @param SDL_Event* event
+ *     Evenements de la fenetre
+ * @return int
+ *     Numéro de la flèche cliquee, ou -1 si aucune fleche cliquee
+ */
+int ClickZone(SDL_Event* event)
+{
+    int zone = -1;
+    int x = event->button.x;
+    int y = event->button.y;
+
+    // Gestion des fleches
+    int i, xmin = 0, xmax = 0;
+
+    for (i=0; i<12; i++)
+    {
+        xmin = BORDER + i * ZONE_W;
+        if (i > 5)
+            xmin += 2 * BORDER;
+
+        xmax = xmin + ZONE_W;
+
+        if (x >= xmin && x <= xmax)
+        {
+            if (y >= BORDER && y <= BORDER + ZONE_H + 10)
+                zone = i + 12;
+            else if (y >= BOTTOM - BORDER - ZONE_H - 10 && y <= BOTTOM - BORDER)
+                zone = 11 - i;
+        }
+    }
+
+    // Gestion des prisonniers
+    if ((x >= 323 && x <= 323 + CHECKER_W) && (y >= 185 && y <= 185 + CHECKER_W))
+        zone = EPos_BarP1;
+    else if ((x >= 323 && x <= 323 + CHECKER_W) && (y >= 265 && y <= 265 + CHECKER_W))
+        zone = EPos_BarP2;
+
+    // Gestion des zones de sortie
+    if ((x >= 697 && x <= 697 + OUT_W) && (y >= BORDER && y <= BORDER + OUT_H))
+        zone = EPos_OutP2;
+    else if ((x >= 697 && x <= 697 + OUT_W) && (y >= 295 && y <= 295 + OUT_H))
+        zone = EPos_OutP1;
+
+    return zone;
+}
+
+/* Fonction qui indique si la zone cliquee est valide
+ * @param int zone
+ *     Zone cliquee
+ * @param S_GameState* gameState
+ *     Etat du jeu
+ * @return int
+ *     1 si la zone cliquee est valide, 0 sinon
+ */
+int IsValidSrc(int zone, S_GameState* gameState)
+{
+    return (zone != -1 &&
+            zone != EPos_OutP1 &&
+            zone != EPos_OutP2 &&
+            gameState->zones[zone].nb_checkers > 0 &&
+            gameState->zones[zone].player == gameState->currentPlayer);
 }
