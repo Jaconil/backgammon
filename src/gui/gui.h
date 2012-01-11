@@ -8,5 +8,6 @@ void FreeWindow(SDL_Surface* icon);
 int ClickRect(SDL_Event* event, int x, int y, int w, int h);
 int ClickZone(SDL_Event* event);
 int IsValidSrc(int zone, S_GameState* gameState);
+int IsValidDst(int zone, S_GameState* gameState);
 
 #endif

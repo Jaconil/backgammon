@@ -106,6 +106,26 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     break;
             }
             break;
+        case SELECT_ZONE_DST:
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONUP:
+                    // Selection d'une zone source
+                    zone = ClickZone(event);
+                    if (IsValidDst(zone, gameState))
+                    {
+                        printf("mouvement %i -> %i\n", gameState->currentZone, zone);
+                    }
+                    else if (IsValidSrc(zone, gameState))
+                        gameState->currentZone = zone;
+                    else
+                    {
+                        gameState->currentZone = -1;
+                        gameState->currentStage = SELECT_ZONE_SRC;
+                    }
+                    break;
+            }
+            break;
         default:
             break;
     }
@@ -393,6 +413,7 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
             SDL_BlitSurface(txtButton, NULL, window, &position);
             break;
         default:
+            DisplayNumbers(window, gameState);
             DisplayDice(window, gameState);
             break;
     }
@@ -456,6 +477,37 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
     }
 
     SDL_FreeSurface(overlays);
+}
+
+/* Procedure pour afficher les numeros des fleches
+ * @param SDL_Surface* window
+ *     Surface de la fenetre
+ * @param S_GameState gameState
+ *     Etat du jeu
+ */
+void DisplayNumbers(SDL_Surface* window, S_GameState gameState)
+{
+    SDL_Surface *numbers = IMG_Load(DESIGN_PATH "numbers.png");
+    SDL_Rect clip, position;
+    clip.x = 0; clip.w = 654; clip.h = 20;
+    position.x = BORDER; position.y = 185;
+
+    if (gameState.currentPlayer == EPlayer1)
+    {
+        clip.y = 20;
+        SDL_BlitSurface(numbers, &clip, window, &position);
+        clip.y = 0; position.y = 285;
+        SDL_BlitSurface(numbers, &clip, window, &position);
+    }
+    else
+    {
+        clip.y = 0;
+        SDL_BlitSurface(numbers, &clip, window, &position);
+        clip.y = 20; position.y = 285;
+        SDL_BlitSurface(numbers, &clip, window, &position);
+    }
+
+    SDL_FreeSurface(numbers);
 }
 
 /* Fonction de gestion de l'affichage du plateau de jeu

@@ -130,7 +130,7 @@ int ClickZone(SDL_Event* event)
     return zone;
 }
 
-/* Fonction qui indique si la zone cliquee est valide
+/* Fonction qui indique si la zone cliquee est valide comme source
  * @param int zone
  *     Zone cliquee
  * @param S_GameState* gameState
@@ -145,4 +145,20 @@ int IsValidSrc(int zone, S_GameState* gameState)
             zone != EPos_OutP2 &&
             gameState->zones[zone].nb_checkers > 0 &&
             gameState->zones[zone].player == gameState->currentPlayer);
+}
+
+/* Fonction qui indique si la zone cliquee est valide comm destination
+ * @param int zone
+ *     Zone cliquee
+ * @param S_GameState* gameState
+ *     Etat du jeu
+ * @return int
+ *     1 si la zone cliquee est valide, 0 sinon
+ */
+int IsValidDst(int zone, S_GameState* gameState)
+{
+    return (zone != -1 &&
+            zone != EPos_BarP1 &&
+            zone != EPos_BarP2 &&
+            gameState->zones[zone].nb_checkers == 0);
 }
