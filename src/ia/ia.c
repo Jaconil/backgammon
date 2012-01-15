@@ -138,10 +138,11 @@ int mouvementPossible(const SGameState * const gameState, EPosition source, int 
 	int dernierPion;
 	
 	nbrPionBar=nombrePionBar(gameState);
-	
-	if (distance==gameState->die1 || distance==gameState->die2) {
+	rafraichitFlecheJouable(gameState);
+
+	if ((distance==gameState->die1 || distance==gameState->die2) && flecheJouable[source]) {
 		if(nbrPionBar>0){//si un pion est prisonnier
-			if (source==EPos_BarP1) {//si la source est bien un prisionnier
+			if (source==EPos_BarP1) {//si la source est bien un prisonnier
 				if (possibleCase(gameState,(EPos_24-distance)+1)) {//si la case dest est libre
 					toReturn=TRUE;
 				} else {
@@ -152,7 +153,7 @@ int mouvementPossible(const SGameState * const gameState, EPosition source, int 
 			}
 		} else {
 			dernierPion=lastChecker();
-			if (dernierPion<=5) { //si tous les pions sont dans le home
+			if (dernierPion<=EPos_6) { //si tous les pions sont dans le home
 				if (distance==source) {//cas du nombre exact pour sortir
 					toReturn=TRUE;
 				} else {
@@ -177,27 +178,49 @@ int mouvementPossible(const SGameState * const gameState, EPosition source, int 
 	return toReturn;
 }
 
+void effectuerUnDeplacementTest(SGameState * plateau, EPosition source, int de) {
+	plateau->zones[source].nb_checkers=plateau->zones[source].nb_checkers-1;
+	if(source==EPos_BarP1) {
+		plateau->zones[25-de].nb_checkers=plateau->zones[25-de].nb_checkers+1;
+		plateau->zones[25-de].player=EPlayer1;
+	} else {
+		if(source-de>=0) {
+			plateau->zones[source-de].nb_checkers=plateau->zones[source-de].nb_checkers+1;
+			plateau->zones[source-de].player=EPlayer1;
+		} else {
+			plateau->zones[EPos_OutP1].nb_checkers=plateau->zones[EPos_OutP1].nb_checkers+1;
+		}
+	}
+}
+
+void enregistrerUnDeplacement(SMove deplacement, EPosition source, int de) {
+	deplacement.src_point=source;
+	if(source-de>=0) {// si le déplacement, n'est pas une sortie de pion
+		deplacement.dest_point=source-1;
+	} else {
+		deplacement.dest_point=EPos_OutP1;
+	}
+}
+
 void decision2Move(const SGameState * const gameState) {
-	int i;//incrémanteur 1ère boucle
-	int j;//incrémanteur 2ème boucle
 	int numPassage;
 	
 	int de1;
 	int de2;
 	
-	SGameState plateau1;
-	SGameState plateau2;
+	int Source1; // source du déplacement dans la première boucle
+	int Source2; // source du déplacement dans la seconde boucle
+	
+	SGameState * plateau1;
 	
 	int mouvementCompletTrouve;
 	int mouvementPremierTrouve;
-	int mouvementSecondTrouve;
 	
 	mouvementCompletTrouve=FALSE;
 	mouvementPremierTrouve=FALSE;
-	mouvementSecondTrouve=FALSE;
 	numPassage=1;
-	
-	while (!mouvementCompletTrouve) {
+		
+	while (!mouvementCompletTrouve && numPassage<=2) {	
 		if (numPassage==1) {//le premier dé utilisé est le dé 1
 			de1=gameState->die1;
 			de2=gameState->die2;
@@ -205,33 +228,31 @@ void decision2Move(const SGameState * const gameState) {
 			de1=gameState->die2;
 			de2=gameState->die1;
 		}
-		
-		while (numPassage<=2 && !mouvementPremierTrouve){
-			memcpy(&plateau1,&gameState,sizeof(gameState));
-			if (nombrePionBar(plateau1)) {//si il y a des prisonniers
-				if (nombrePionBar==1) {//si il n'y a qu'un prisonnier
-					if (mouvementPossible(plateau1,EPos_BarP1,de1)) {//si le premier mouvement est possible
-						
-					}//sinon il faut tester avec l'autre dé et donc passer au passage suivant
-				} else { //si il y a deux prisonniers
-					
+		Source1=EPos_BarP1;
+		while (!mouvementCompletTrouve && Source1>=EPos_1) {// si pas de mouvement complet et qu'on n'a pas finit de parcourir le plateau pour le permier déplacement
+			if (Source1!=EPos_OutP1 && mouvementPossible(gameState,Source1,de1)){// un premier mouvement est possible
+				memcpy(&plateau1,&gameState,sizeof(gameState));
+				mouvementPremierTrouve=TRUE;
+				effectuerUnDeplacementTest(plateau1, Source1, de1);
+				Source2=EPos_BarP1;
+				while (!mouvementCompletTrouve && (Source2>=EPos_1)) {// si pas de mouvement complet et qu'on n'a pas finit de parcourir le plateau pour le second déplacement
+					if (Source2!=EPos_OutP1 && mouvementPossible(plateau1,Source2,de2)){// un second déplacement est possible
+						enregistrerUnDeplacement(Mouvements[0],Source1, de1);
+						enregistrerUnDeplacement(Mouvements[1], Source2, de2);
+						mouvementCompletTrouve=TRUE;
+					}
+					Source2=Source2-1;
+				}	
+			}
+			if(mouvementPremierTrouve && !mouvementCompletTrouve){// cas ou 1 seul dé est jouable
+				if((Mouvements[0].dest_point - Mouvements[0].src_point)<de1){// si le premier déplacement est plus grand que l'ancien, il faut le préférer.
+					enregistrerUnDeplacement(Mouvements[0], Source1, de1);
 				}
-			} else {
-				
+				mouvementPremierTrouve=FALSE;
 			}
-			
-			while (!mouvementSecondTrouve) {
-				//copie des lignes du dessus
-			}
-			numPassage++;
-		}
-	}
-}
-
-void decision2Move2(const SGameState * const gameState) {
-	int nbPrisonniers;
-	if(nombrePionBar!=0){//si il y a des prisonniers
-		if 
+			Source1=Source1-1;
+		}	
+		numPassage++;
 	}
 }
 
@@ -242,7 +263,6 @@ void redirectionEnFonctionDesDes (const SGameState * const gameState) {
 	if(nombreCoup==2) {//si les deux dés sont différents et qu'on a 2 deplacements
 		decision2Move(gameState);
 	} else {//si on a 2 dés identiques
-		
 	}
 }
 
@@ -250,8 +270,9 @@ void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned i
 	rafraichitFlecheJouable(gameState);
 	initTableauSMoveLocal(Mouvements);
 	
-	redirectionEnFonctionDesDes(gameState);
-	
+	//redirectionEnFonctionDesDes(gameState);
+	decision2Move(gameState);
+
 	copierTableauSMove(Mouvements,moves);
 	copierTableauSMove(moves, MouvementsPrecedant);
 }
@@ -298,7 +319,7 @@ void initGameBoard(SZone* gameBoard){
 int main (int argc, char *argv[]) {
 	SGameState theGame;
 	SMove moveTab[4];
-	int i, error;
+	int i, j, error;
 	
 	initGameBoard(theGame.zones);
 	theGame.score=0;
@@ -312,11 +333,16 @@ int main (int argc, char *argv[]) {
 	theGame.die1=(rand()%6)+1;	// die1
 	theGame.die2=(rand()%6)+1;	// die2
 	
-	
+	for(j=0;j<4;j++) {
+		moveTab[j].src_point=-1;
+		moveTab[j].dest_point=-1;
+	}
+	printf("de1 : %i de2 : %i\n", theGame.die1, theGame.die2);	
 	MakeDecision(&theGame, moveTab, error);
+	printf("recoucou\n");	
 	//}
 	
-	//affichage
+	/*//affichage
 	for(i=0;i<28;i++){
 		if (theGame.zones[i].nb_checkers!=0){
 			printf("%i - joueur %i : %i\n", i, theGame.zones[i].player, theGame.zones[i].nb_checkers);
@@ -327,6 +353,6 @@ int main (int argc, char *argv[]) {
 	
 	
 	printf("%i\n",lastChecker());
-	
+	*/
 	return 0;
 }
