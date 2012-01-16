@@ -116,14 +116,14 @@ int distanceToWin(const SGameState * const gameState){
 	return Result;
 }
 
-int possibleCase(const SGameState * const gameState, EPosition source){
+int possibleCase(const SGameState * const gameState, int source){
 	return !((gameState->zones[source].player==EPlayer2)&&(gameState->zones[source].nb_checkers>1));
 }
 
-int mouvementNormalPossible(const SGameState * const gameState, EPosition source, int distance) {
+int mouvementNormalPossible(const SGameState * const gameState, int source, int distance) {
 	int toReturn;
 	
-	if (flecheJouable[source]>0 && possibleCase(gameState,source-distance)) {
+	if (source-distance>=0 && flecheJouable[source]>0 && possibleCase(gameState,source-distance)) {
 		toReturn=TRUE;
 	} else {
 		toReturn=FALSE;
@@ -132,7 +132,7 @@ int mouvementNormalPossible(const SGameState * const gameState, EPosition source
 	return toReturn;
 }
 
-int mouvementPossible(const SGameState * const gameState, EPosition source, int distance) {
+int mouvementPossible(const SGameState * const gameState, int source, int distance) {
 	int toReturn;
 	int nbrPionBar;
 	int dernierPion;
@@ -154,14 +154,14 @@ int mouvementPossible(const SGameState * const gameState, EPosition source, int 
 		} else {
 			dernierPion=lastChecker();
 			if (dernierPion<=EPos_6) { //si tous les pions sont dans le home
-				if (distance==source) {//cas du nombre exact pour sortir
+				if (distance==source+1) {//cas du nombre exact pour sortir
 					toReturn=TRUE;
 				} else {
-					if (source==dernierPion) {//si c'est le dernier pion
-						if (distance>source) {//si le jet est supérieur à la distance restante
+					if (distance>source+1) {//si c'est le dernier pion
+						if (source==dernierPion) {//si le jet est supérieur à la distance restante
 							toReturn=TRUE;
 						} else {//deplacement normal
-							toReturn=mouvementNormalPossible(gameState,source,distance);
+							toReturn=FALSE;
 						}
 					} else {//deplacement normal
 						toReturn=mouvementNormalPossible(gameState,source,distance);
@@ -178,13 +178,13 @@ int mouvementPossible(const SGameState * const gameState, EPosition source, int 
 	return toReturn;
 }
 
-void effectuerUnDeplacementTest(SGameState * plateau, EPosition source, int de) {
+void effectuerUnDeplacementTest(SGameState * plateau, int source, int de) {
 	plateau->zones[source].nb_checkers=plateau->zones[source].nb_checkers-1;
 	if(source==EPos_BarP1) {
 		plateau->zones[25-de].nb_checkers=plateau->zones[25-de].nb_checkers+1;
 		plateau->zones[25-de].player=EPlayer1;
 	} else {
-		if(source-de>=0) {
+		if(source-de>=0) {// distance moins la valeur du dé plus la case zéro
 			plateau->zones[source-de].nb_checkers=plateau->zones[source-de].nb_checkers+1;
 			plateau->zones[source-de].player=EPlayer1;
 		} else {
@@ -193,12 +193,16 @@ void effectuerUnDeplacementTest(SGameState * plateau, EPosition source, int de) 
 	}
 }
 
-void enregistrerUnDeplacement(SMove deplacement, EPosition source, int de) {
-	deplacement.src_point=source;
-	if(source-de>=0) {// si le déplacement, n'est pas une sortie de pion
-		deplacement.dest_point=source-1;
+void enregistrerUnDeplacement(int i, int source, int de) {
+	Mouvements[i].src_point=source;
+	if(source==EPos_BarP1) {
+		Mouvements[i].dest_point=EPos_24-de+1;
 	} else {
-		deplacement.dest_point=EPos_OutP1;
+		if(source-de>=0) {// si le déplacement, n'est pas une sortie de pion
+			Mouvements[i].dest_point=source-de;
+		} else {
+			Mouvements[i].dest_point=EPos_OutP1;
+		}
 	}
 }
 
@@ -208,10 +212,10 @@ void decision2Move(const SGameState * const gameState) {
 	int de1;
 	int de2;
 	
-	int Source1; // source du déplacement dans la première boucle
-	int Source2; // source du déplacement dans la seconde boucle
+	int source1; // source du déplacement dans la première boucle
+	int source2; // source du déplacement dans la seconde boucle
 	
-	SGameState * plateau1;
+	SGameState plateau1;
 	
 	int mouvementCompletTrouve;
 	int mouvementPremierTrouve;
@@ -228,31 +232,102 @@ void decision2Move(const SGameState * const gameState) {
 			de1=gameState->die2;
 			de2=gameState->die1;
 		}
-		Source1=EPos_BarP1;
-		while (!mouvementCompletTrouve && Source1>=EPos_1) {// si pas de mouvement complet et qu'on n'a pas finit de parcourir le plateau pour le permier déplacement
-			if (Source1!=EPos_OutP1 && mouvementPossible(gameState,Source1,de1)){// un premier mouvement est possible
-				memcpy(&plateau1,&gameState,sizeof(gameState));
+		source1=EPos_BarP1;
+		while (!mouvementCompletTrouve && source1>=EPos_1) {// si pas de mouvement complet et qu'on n'a pas finit de parcourir le plateau pour le permier déplacement
+			if (source1!=EPos_OutP1 && mouvementPossible(gameState,source1,de1)){// un premier mouvement est possible
+				plateau1=*gameState;
 				mouvementPremierTrouve=TRUE;
-				effectuerUnDeplacementTest(plateau1, Source1, de1);
-				Source2=EPos_BarP1;
-				while (!mouvementCompletTrouve && (Source2>=EPos_1)) {// si pas de mouvement complet et qu'on n'a pas finit de parcourir le plateau pour le second déplacement
-					if (Source2!=EPos_OutP1 && mouvementPossible(plateau1,Source2,de2)){// un second déplacement est possible
-						enregistrerUnDeplacement(Mouvements[0],Source1, de1);
-						enregistrerUnDeplacement(Mouvements[1], Source2, de2);
+				effectuerUnDeplacementTest(&plateau1, source1, de1);
+				source2=EPos_BarP1;
+				while (!mouvementCompletTrouve && (source2>=EPos_1)) {// si pas de mouvement complet et qu'on n'a pas finit de parcourir le plateau pour le second déplacement
+					if (source2!=EPos_OutP1 && mouvementPossible(&plateau1,source2,de2)){// un second déplacement est possible
+						enregistrerUnDeplacement(0, source1, de1);
+						enregistrerUnDeplacement(1, source2, de2);
 						mouvementCompletTrouve=TRUE;
 					}
-					Source2=Source2-1;
+					source2=source2-1;
 				}	
 			}
 			if(mouvementPremierTrouve && !mouvementCompletTrouve){// cas ou 1 seul dé est jouable
 				if((Mouvements[0].dest_point - Mouvements[0].src_point)<de1){// si le premier déplacement est plus grand que l'ancien, il faut le préférer.
-					enregistrerUnDeplacement(Mouvements[0], Source1, de1);
+					enregistrerUnDeplacement(0, source1, de1);
 				}
 				mouvementPremierTrouve=FALSE;
 			}
-			Source1=Source1-1;
+			source1=source1-1;
 		}	
 		numPassage++;
+	}
+}
+
+void decision4Move(const SGameState * const gameState) {
+	SGameState  plateau1;
+	SGameState  plateau2;
+	SGameState  plateau3;
+	
+	int mouvementCompletTrouve;
+	int mouvementPremierTrouve;
+	int mouvementDeuxiemeTrouve;
+	int mouvementTroisiemeTrouve;
+	
+	int source1;
+	int source2;
+	int source3;
+	int source4;
+	
+	mouvementCompletTrouve=FALSE;
+	mouvementDeuxiemeTrouve=FALSE;
+	mouvementTroisiemeTrouve=FALSE;
+	
+	source1=EPos_BarP1;
+	while(!mouvementCompletTrouve && source1>=EPos_1) {
+		if(source1!=EPos_OutP1 && mouvementPossible(gameState,source1,gameState->die1)) {
+			plateau1= *gameState;
+			mouvementPremierTrouve=TRUE;
+			effectuerUnDeplacementTest(&plateau1, source1, gameState->die1);
+			source2=EPos_BarP1;
+			while(!mouvementCompletTrouve && source2>=EPos_1) {
+				if(source2!=EPos_OutP1 && mouvementPossible(&plateau1,source2,gameState->die1)) {
+					plateau2= plateau1;
+					mouvementDeuxiemeTrouve=TRUE;
+					effectuerUnDeplacementTest(&plateau2, source2, gameState->die1);
+					source3=EPos_BarP1;
+					while(!mouvementCompletTrouve && source3>=EPos_1) {
+						if(source2!=EPos_OutP1 && mouvementPossible(&plateau2,source3,gameState->die1)) {
+							plateau3= plateau2;
+							mouvementTroisiemeTrouve=TRUE;
+							effectuerUnDeplacementTest(&plateau3, source3, gameState->die1);
+							source4=EPos_BarP1;
+							while(!mouvementCompletTrouve && source4>=EPos_1) {
+								if(source4!=EPos_OutP1 && mouvementPossible(&plateau3,source4,gameState->die1)) {
+								mouvementCompletTrouve=TRUE;
+								enregistrerUnDeplacement(0, source1, gameState->die1);
+								enregistrerUnDeplacement(1, source2, gameState->die1);
+								enregistrerUnDeplacement(2, source3, gameState->die1);
+								enregistrerUnDeplacement(3, source4, gameState->die1);
+								}
+								source4=source4-1;
+							}
+							if(!mouvementCompletTrouve) {
+								enregistrerUnDeplacement(0, source1, gameState->die1);
+								enregistrerUnDeplacement(1, source2, gameState->die1);
+								enregistrerUnDeplacement(2, source3, gameState->die1);
+							}
+						}
+						source3=source3-1;
+					}
+					if(!mouvementTroisiemeTrouve) {
+						enregistrerUnDeplacement(0, source1, gameState->die1);
+						enregistrerUnDeplacement(1, source2, gameState->die1);
+					}
+				}
+				source2=source2-1;
+			}
+			if(!mouvementDeuxiemeTrouve) {
+				enregistrerUnDeplacement(0, source1, gameState->die1);
+			}
+		}
+		source1=source1-1;
 	}
 }
 
@@ -263,6 +338,7 @@ void redirectionEnFonctionDesDes (const SGameState * const gameState) {
 	if(nombreCoup==2) {//si les deux dés sont différents et qu'on a 2 deplacements
 		decision2Move(gameState);
 	} else {//si on a 2 dés identiques
+		decision4Move(gameState);
 	}
 }
 
@@ -270,8 +346,7 @@ void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned i
 	rafraichitFlecheJouable(gameState);
 	initTableauSMoveLocal(Mouvements);
 	
-	//redirectionEnFonctionDesDes(gameState);
-	decision2Move(gameState);
+	redirectionEnFonctionDesDes(gameState);
 
 	copierTableauSMove(Mouvements,moves);
 	copierTableauSMove(moves, MouvementsPrecedant);
@@ -314,12 +389,20 @@ void initGameBoard(SZone* gameBoard){
 	gameBoard[EPos_8]=arrow;
 }
 
+void effectuerUnDeplacement(SGameState * plateau, int source, int destination) {
+	if(source>=0) {
+		plateau->zones[source].nb_checkers=plateau->zones[source].nb_checkers-1;
+		plateau->zones[destination].player=EPlayer1;
+		plateau->zones[destination].nb_checkers=plateau->zones[destination].nb_checkers+1;
+	}
+}
+
 
 
 int main (int argc, char *argv[]) {
 	SGameState theGame;
 	SMove moveTab[4];
-	int i, j, error;
+	int i, j, k, error;
 	
 	initGameBoard(theGame.zones);
 	theGame.score=0;
@@ -328,8 +411,7 @@ int main (int argc, char *argv[]) {
 	srand(time(NULL)); //initialisation de la fonction de randomisation
 	
 	
-	//while ((theGame.zones[EPos_OutP1].nb_checkers<15) &&
-	//		(theGame.zones[EPos_OutP2].nb_checkers<15)) {
+	while (theGame.zones[EPos_OutP1].nb_checkers<15) {
 	theGame.die1=(rand()%6)+1;	// die1
 	theGame.die2=(rand()%6)+1;	// die2
 	
@@ -339,19 +421,22 @@ int main (int argc, char *argv[]) {
 	}
 	printf("de1 : %i de2 : %i\n", theGame.die1, theGame.die2);	
 	MakeDecision(&theGame, moveTab, error);
-	printf("recoucou\n");	
-	//}
-	
-	/*//affichage
-	for(i=0;i<28;i++){
-		if (theGame.zones[i].nb_checkers!=0){
-			printf("%i - joueur %i : %i\n", i, theGame.zones[i].player, theGame.zones[i].nb_checkers);
-		} else {
-			printf("%i - none\n", i);
-		}
+	for(i=0;i<4;i++) {
+		printf("deplacement %i : %i --> %i\n", i, moveTab[i].src_point, moveTab[i].dest_point);	
+		effectuerUnDeplacement(&theGame, moveTab[i].src_point, moveTab[i].dest_point);
 	}
 	
 	
+	
+		for(k=0;k<28;k++){
+			if (theGame.zones[k].nb_checkers!=0){
+				printf("%i - joueur %i : %i\n", k, theGame.zones[k].player, theGame.zones[k].nb_checkers);
+			} else {
+				printf("%i - none\n", k);
+			}
+		}
+	}
+	/*//affichage
 	printf("%i\n",lastChecker());
 	*/
 	return 0;
