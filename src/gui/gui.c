@@ -157,15 +157,16 @@ int IsValidSrc(int zone, S_GameState* gameState)
  */
 int IsValidDst(int zone, S_GameState* gameState)
 {
+    // TODO : modifier pour gérer le changement de couleur
     return (zone != -1 &&
             zone != EPos_BarP1 &&
             zone != EPos_BarP2 &&
             (((zone + gameState->die1 == gameState->currentZone ||
              zone + gameState->die2 == gameState->currentZone) &&
-              gameState->currentPlayer == WHITE) ||
+              gameState->currentPlayer == EPlayer2) ||
              ((zone - gameState->die1 == gameState->currentZone ||
              zone - gameState->die2 == gameState->currentZone) &&
-               gameState->currentPlayer == BLACK))  &&
+               gameState->currentPlayer == EPlayer1))  &&
             (gameState->zones[zone].nb_checkers <= 1 ||
              gameState->zones[zone].player == gameState->currentPlayer));
 }

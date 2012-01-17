@@ -13,4 +13,6 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState);
 
 void RollDice(S_GameState* gameState);
 
+void MoveCheckerBar(S_GameState* gameState, int zone);
+
 #endif

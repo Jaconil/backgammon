@@ -11,6 +11,21 @@
 #include "gui.h"
 #include "board.h"
 
+/* Procedure permettant de mettre un checker au Bar..
+ * @param S_GameState* gameState
+ *     Etat du jeu
+ * @param int zone
+ *     La zone d'où le checker doit être enlevé
+ */
+void MoveCheckerBar(S_GameState* gameState, int zone){
+   gameState->zones[zone].nb_checkers--;
+   if(gameState->currentPlayer == EPlayer1){
+        gameState->zones[EPos_BarP2].nb_checkers++;
+   }else{
+        gameState->zones[EPos_BarP1].nb_checkers++;
+   }
+}
+
 /* Procedure qui lance les des aleatoirement
  * @param S_GameState* gameState
  *     Etat du jeu
@@ -115,6 +130,14 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     if (IsValidDst(zone, gameState))
                     {
                         printf("mouvement %i -> %i\n", gameState->currentZone, zone);
+                        if(gameState->zones[zone].nb_checkers==1 && gameState->zones[zone].player != gameState->currentPlayer){
+                            MoveCheckerBar(gameState, zone);
+                        }
+                        gameState->zones[gameState->currentZone].nb_checkers--;
+                        gameState->zones[zone].nb_checkers++;
+                        gameState->zones[zone].player = gameState->currentPlayer;
+                        gameState->currentZone = -1;
+                        gameState->currentStage = SELECT_ZONE_SRC;
                     }
                     else if (IsValidSrc(zone, gameState))
                         gameState->currentZone = zone;
