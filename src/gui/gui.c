@@ -160,5 +160,12 @@ int IsValidDst(int zone, S_GameState* gameState)
     return (zone != -1 &&
             zone != EPos_BarP1 &&
             zone != EPos_BarP2 &&
-            gameState->zones[zone].nb_checkers == 0);
+            (((zone + gameState->die1 == gameState->currentZone ||
+             zone + gameState->die2 == gameState->currentZone) &&
+              gameState->currentPlayer == WHITE) ||
+             ((zone - gameState->die1 == gameState->currentZone ||
+             zone - gameState->die2 == gameState->currentZone) &&
+               gameState->currentPlayer == BLACK))  &&
+            (gameState->zones[zone].nb_checkers <= 1 ||
+             gameState->zones[zone].player == gameState->currentPlayer));
 }

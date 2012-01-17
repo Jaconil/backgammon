@@ -5,10 +5,12 @@
     #include <SDL/SDL_loadso.h>
     #define DLOPEN(path) SDL_LoadObject(path)
     #define DLSYM SDL_LoadFunction
+    #define DLCLOSE SDL_UnloadObject
 #else
     #include <dlfcn.h>
     #define DLOPEN(path) dlopen(path, RTLD_LAZY)
     #define DLSYM dlsym
+    #define DLCLOSE dlclose
 #endif
 
 #include "structures.h"
@@ -43,10 +45,10 @@ void InitAIStruct(S_AIFunctions* aiFunctions)
 void FreeAIStruct(S_AIFunctions* aiFunctions)
 {
     if (aiFunctions[0].ai != NULL)
-        dlclose(aiFunctions[0].ai);
+        DLCLOSE(aiFunctions[0].ai);
 
     if (aiFunctions[1].ai != NULL)
-        dlclose(aiFunctions[1].ai);
+        DLCLOSE(aiFunctions[1].ai);
 }
 
 /* Fonction de chargement d'une API
