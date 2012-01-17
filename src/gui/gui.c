@@ -144,7 +144,8 @@ int IsValidSrc(int zone, S_GameState* gameState)
             zone != EPos_OutP1 &&
             zone != EPos_OutP2 &&
             gameState->zones[zone].nb_checkers > 0 &&
-            gameState->zones[zone].player == gameState->currentPlayer);
+            gameState->zones[zone].player == gameState->currentPlayer &&
+            gameState->zones[gameState->currentPlayer == EPlayer1 ? EPos_OutP1 : EPos_OutP2].nb_checkers == 0);
 }
 
 /* Fonction qui indique si la zone cliquee est valide comm destination
@@ -157,16 +158,24 @@ int IsValidSrc(int zone, S_GameState* gameState)
  */
 int IsValidDst(int zone, S_GameState* gameState)
 {
-    // TODO : modifier pour gérer le changement de couleur
-    return (zone != -1 &&
-            zone != EPos_BarP1 &&
-            zone != EPos_BarP2 &&
-            (((zone + gameState->die1 == gameState->currentZone ||
-             zone + gameState->die2 == gameState->currentZone) &&
-              gameState->currentPlayer == EPlayer2) ||
-             ((zone - gameState->die1 == gameState->currentZone ||
-             zone - gameState->die2 == gameState->currentZone) &&
-               gameState->currentPlayer == EPlayer1))  &&
-            (gameState->zones[zone].nb_checkers <= 1 ||
-             gameState->zones[zone].player == gameState->currentPlayer));
+    int valid = 0;
+    if(gameState->die1 != 0){
+        valid |= (zone + gameState->die1 == gameState->currentZone &&
+                  gameState->currentPlayer == EPlayer2) ||
+                  (zone - gameState->die1 == gameState->currentZone &&
+                  gameState->currentPlayer == EPlayer1);
+    }
+    if(gameState->die2 != 0){
+        valid |= (zone + gameState->die2 == gameState->currentZone &&
+                  gameState->currentPlayer == EPlayer2) ||
+                  (zone - gameState->die2 == gameState->currentZone &&
+                  gameState->currentPlayer == EPlayer1);
+    }
+    valid &= (zone != -1);
+    valid &= (zone != EPos_BarP1);
+    valid &= (zone != EPos_BarP2);
+    valid &= (gameState->zones[zone].nb_checkers <= 1 ||
+             gameState->zones[zone].player == gameState->currentPlayer);
+
+    return valid;;
 }

@@ -11,6 +11,8 @@
 #include "gui.h"
 #include "board.h"
 
+#define ABS(x) (((x) < 0 ? -(x) : (x)))
+
 /* Procedure permettant de mettre un checker au Bar..
  * @param S_GameState* gameState
  *     Etat du jeu
@@ -67,6 +69,7 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
 
     SDL_WaitEvent(event);
     int zone = -1;
+    int diff = -1;
 
     if (event->type == SDL_QUIT)
         clicked = QUIT_BOARD;
@@ -136,6 +139,16 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                         gameState->zones[gameState->currentZone].nb_checkers--;
                         gameState->zones[zone].nb_checkers++;
                         gameState->zones[zone].player = gameState->currentPlayer;
+
+                        diff = gameState->currentZone - zone;
+                        diff = ABS(diff);
+                        if(gameState->die1 == diff){
+                            gameState->die1 = 0;
+                        }
+                        if(gameState->die2 == diff){
+                            gameState->die2 = 0;
+                        }
+
                         gameState->currentZone = -1;
                         gameState->currentStage = SELECT_ZONE_SRC;
                     }
