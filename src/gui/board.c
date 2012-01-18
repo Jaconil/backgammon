@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
@@ -10,61 +9,7 @@
 #include "structures.h"
 #include "gui.h"
 #include "board.h"
-
-#define ABS(x) (((x) < 0 ? -(x) : (x)))
-
-/* Procedure permettant de mettre un checker au Bar..
- * @param S_GameState* gameState
- *     Etat du jeu
- * @param int zone
- *     La zone d'où le checker doit être enlevé
- */
-void MoveCheckerBar(S_GameState* gameState, int zone){
-   gameState->zones[zone].nb_checkers--;
-   if(gameState->currentPlayer == EPlayer1){
-        gameState->zones[EPos_BarP2].nb_checkers++;
-   }else{
-        gameState->zones[EPos_BarP1].nb_checkers++;
-   }
-}
-
-/* Procedure qui lance les des aleatoirement
- * @param S_GameState* gameState
- *     Etat du jeu
- */
-void RollDice(S_GameState* gameState)
-{
-    gameState->die1 = (rand() % 6) + 1;
-    gameState->die2 = (rand() % 6) + 1;
-
-    // Changement d'etat
-    if (gameState->currentStage == WAITING_FIRST_ROLL)
-    {
-        while (gameState->die1 == gameState->die2)
-        {
-            gameState->die1 = (rand() % 6) + 1;
-            gameState->die2 = (rand() % 6) + 1;
-        }
-
-        if (gameState->die1 > gameState->die2)
-            gameState->currentPlayer = EPlayer1;
-        else
-            gameState->currentPlayer = EPlayer2;
-
-        gameState->currentStage = FIRST_ROLL_POPUP;
-    }
-
-    if (gameState->die1 == gameState->die2)
-    {
-        gameState->useDie1 = 2;
-        gameState->useDie2 = 2;
-    }
-    else
-    {
-        gameState->useDie1 = 1;
-        gameState->useDie2 = 1;
-    }
-}
+#include "game.h"
 
 /* Fonction de gestion des evenements du plateau
  * @param SDL_Event* event
@@ -80,7 +25,6 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
 
     SDL_WaitEvent(event);
     int zone = -1;
-    int diff = -1;
 
     if (event->type == SDL_QUIT)
         clicked = QUIT_BOARD;
@@ -143,26 +87,7 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     zone = ClickZone(event);
                     if (IsValidDst(zone, gameState))
                     {
-                        printf("mouvement %i -> %i\n", gameState->currentZone, zone);
-
-                        // gestion d'un blot
-                        if(gameState->zones[zone].nb_checkers==1 && gameState->zones[zone].player != gameState->currentPlayer){
-                            MoveCheckerBar(gameState, zone);
-                        }
-                        gameState->zones[gameState->currentZone].nb_checkers--;
-                        gameState->zones[zone].nb_checkers++;
-                        gameState->zones[zone].player = gameState->currentPlayer;
-
-                        diff = gameState->currentZone - zone;
-                        diff = ABS(diff);
-                        if(gameState->die1 == diff){
-                            gameState->useDie1--;
-                        }
-                        if(gameState->die2 == diff){
-                            gameState->useDie2--;
-                        }
-
-                        gameState->currentZone = -1;
+                        DoMove(zone, gameState);
                         gameState->currentStage = SELECT_ZONE_SRC;
                     }
                     else if (IsValidSrc(zone, gameState))
@@ -224,9 +149,6 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
     gameState->zones[EPos_OutP1].player = EPlayer1;
     gameState->zones[EPos_OutP2].player = EPlayer2;
 
-    // Chaque joueur commence avec deux dames sur sa case 24,
-    // trois sur sa case 8, et cinq sur ses cases 13 et 6.
-
     // On positionne les pions de depart
     gameState->zones[EPos_24].player = EPlayer1;
     gameState->zones[EPos_24].nb_checkers = 2;
@@ -282,7 +204,7 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
             position.x += ZONE_W * ((i < 12)? 11-i : i-12); // decalage des fleches
 
             if (i > 17 || i < 6)
-                position.x += 2*BORDER;
+                position.x += 2 * BORDER;
 
             double step = 40.0;
 
@@ -592,10 +514,8 @@ void DisplayHelp(SDL_Surface* window, S_GameState gameState)
             position.y = (i < 12) ? 270 : 205;
             clip.y = (i < 12) ? 15 : 0;
 
-            if (i < 12)
-                position.x = BORDER + (11-i) * ZONE_W + ZONE_W/2 - 15;
-            else
-                position.x = BORDER + (i-12) * ZONE_W + ZONE_W/2 - 15;
+            position.x = BORDER + ZONE_W/2 -15;
+            position.x += ZONE_W * ((i < 12) ? 11-i : i-12);
 
             if (i < 6 || i > 17)
                 position.x += 2 * BORDER;
@@ -660,6 +580,8 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
             finish = 1;
             quit = 1;
         }
+
+        SDL_Delay(5);
     }
 
     SDL_FreeSurface(board_bg);

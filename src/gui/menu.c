@@ -406,6 +406,8 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
             finish = DisplayBoard(window, gameMode, aiFunctions, gameConfig);
         else if (button == QUIT)
             finish = 1;
+
+        SDL_Delay(5);
     }
 
     TTF_CloseFont(font);
