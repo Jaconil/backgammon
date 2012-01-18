@@ -177,5 +177,5 @@ int IsValidDst(int zone, S_GameState* gameState)
     valid &= (gameState->zones[zone].nb_checkers <= 1 ||
              gameState->zones[zone].player == gameState->currentPlayer);
 
-    return valid;;
+    return valid;
 }
