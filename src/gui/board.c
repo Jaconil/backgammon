@@ -25,6 +25,7 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
 
     SDL_WaitEvent(event);
     int zone = -1;
+    int bx;
 
     if (event->type == SDL_QUIT)
         clicked = QUIT_BOARD;
@@ -45,6 +46,25 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     // Bouton "Lancer"
                     if (ClickRect(event, 293, 230, 100, 30))
                         RollDice(gameState);
+                    break;
+            }
+            break;
+        case WAITING_ROLL_DBL:
+            bx = (gameState->currentPlayer == EPlayer1) ? 122 : 464;
+
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONDOWN:
+                    // Bouton "Doubler"
+                    if (ClickRect(event, bx, 210, 100, 30))
+                        gameState->selected = BUTTON1;
+
+                    // Bouton "Lancer"
+                    if (ClickRect(event, bx, 250, 100, 30))
+                        gameState->selected = BUTTON2;
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    gameState->selected = NONE_BOARD;
                     break;
             }
             break;
@@ -343,6 +363,12 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
     {
         case WAITING_FIRST_ROLL:
             DisplayButton(window, CENTER_X, CENTER_Y, "Lancer", gameState.selected == BUTTON1);
+            break;
+        case WAITING_ROLL_DBL:
+            DisplayButton(window, (gameState.currentPlayer == EPlayer1) ? CENTER_LEFT : CENTER_RIGHT,
+                                   CENTER_Y - 20, "Doubler", gameState.selected == BUTTON1);
+            DisplayButton(window, (gameState.currentPlayer == EPlayer1) ? CENTER_LEFT : CENTER_RIGHT,
+                                   CENTER_Y + 20, "Lancer", gameState.selected == BUTTON2);
             break;
         case FIRST_ROLL_POPUP:
             DisplayDice(window, gameState);

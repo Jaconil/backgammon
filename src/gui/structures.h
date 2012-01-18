@@ -72,6 +72,7 @@ typedef enum
 typedef enum
 {
     BUTTON1,
+    BUTTON2,
     NONE_BOARD,
     QUIT_BOARD
 } E_BoardSelected;
