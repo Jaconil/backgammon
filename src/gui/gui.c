@@ -145,7 +145,7 @@ int IsValidSrc(int zone, S_GameState* gameState)
             zone != EPos_OutP2 &&
             gameState->zones[zone].nb_checkers > 0 &&
             gameState->zones[zone].player == gameState->currentPlayer &&
-            gameState->zones[gameState->currentPlayer == EPlayer1 ? EPos_BarP1 : EPos_BarP2].nb_checkers == 0);
+            gameState->zones[gameState->currentPlayer == EPlayer1 ? EPos_OutP1 : EPos_OutP2].nb_checkers == 0);
 }
 
 /* Fonction qui indique si la zone cliquee est valide comm destination
