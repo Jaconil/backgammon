@@ -129,3 +129,35 @@ int ClickZone(SDL_Event* event)
 
     return zone;
 }
+
+/* Procedure de dessin de bouton
+ * @param SDL_Surface* window
+ *     Surface de la fenetre
+ * @param int x
+ *     Abscisse du centre du bouton
+ * @param int y
+ *     Ordonnee du centre du bouton
+ * @param char* label
+ *     Texte du bouton
+ * @param int select
+ *     1 si le bouton est selectionne, 0 sinon
+ */
+void DisplayButton(SDL_Surface* window, int x, int y, char* label, int select)
+{
+    SDL_Surface *overlays = IMG_Load(DESIGN_PATH "overlays.png");
+    SDL_Rect clip, position;
+    TTF_Font *font = TTF_OpenFont(DESIGN_PATH "board.ttf", 20);
+    SDL_Color black = {0,0,0}, selectColor = {200, 200, 100};
+    SDL_Surface *txtButton = NULL;
+
+    clip.x = 80; clip.y = 80; clip.w = 100; clip.h = 30;
+    position.x = x - clip.w/2; position.y = y - clip.h/2;
+    SDL_BlitSurface(overlays, &clip, window, &position);
+
+    txtButton = TTF_RenderText_Blended(font, label, select ? selectColor : black);
+    position.x = x - txtButton->w/2; position.y = y - txtButton->h/2;
+    SDL_BlitSurface(txtButton, NULL, window, &position);
+
+    TTF_CloseFont(font);
+    SDL_FreeSurface(overlays);
+}

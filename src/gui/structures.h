@@ -63,7 +63,9 @@ typedef enum
     SELECT_ZONE_DST,
     WAITING_ROLL_DBL,
     DOUBLE_POPUP,
-    WAITING_ROLL
+    WAITING_ROLL,
+    PASS_POPUP,
+    FINISH_POPUP
 } E_Stage;
 
 // Texte du plateau selectionne

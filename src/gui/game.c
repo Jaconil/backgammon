@@ -129,4 +129,42 @@ void DoMove(int zone, S_GameState* gameState)
         gameState->useDie2--;
 
     gameState->currentZone = -1;
+
+    // Gestion du changement de transition
+    if (gameState->useDie1 == 0 && gameState->useDie2 == 0)
+    {
+        if (IsFinish(gameState))
+            gameState->currentStage = FINISH_POPUP;
+        else
+        {
+            if (gameState->currentPlayer == EPlayer1)
+                gameState->currentPlayer = EPlayer2;
+            else
+                gameState->currentPlayer = EPlayer1;
+
+            gameState->currentStage = WAITING_ROLL_DBL;
+        }
+    }
+}
+
+/* Fonction qui determine si des mouvements sont possibles avec les des
+ * @param S_GameState* gameState
+ *     Etat du jeu
+ * @return int
+ *     1 si des mouvements sont possibles, 0 sinon
+ */
+int IsPossibleMove(S_GameState* gameState)
+{
+    return 1;
+}
+
+/* Fonction qui determine si le jeu est fini
+ * @param S_GameState* gameState
+ *     Etat du jeu
+ * @return int
+ *     1 si le jeu est fini, 0 sinon
+ */
+int IsFinish(S_GameState* gameState)
+{
+    return 0;
 }
