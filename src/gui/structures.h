@@ -85,6 +85,10 @@ typedef struct
     SZone zones[28];
 
     unsigned int die1, die2;
+
+    // Coups restants pour chaque dé
+    unsigned int useDie1, useDie2;
+
     unsigned int scoreP1, scoreP2;
 
     unsigned int stake;

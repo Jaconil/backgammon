@@ -53,6 +53,17 @@ void RollDice(S_GameState* gameState)
 
         gameState->currentStage = FIRST_ROLL_POPUP;
     }
+
+    if (gameState->die1 == gameState->die2)
+    {
+        gameState->useDie1 = 2;
+        gameState->useDie2 = 2;
+    }
+    else
+    {
+        gameState->useDie1 = 1;
+        gameState->useDie2 = 1;
+    }
 }
 
 /* Fonction de gestion des evenements du plateau
@@ -133,6 +144,8 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     if (IsValidDst(zone, gameState))
                     {
                         printf("mouvement %i -> %i\n", gameState->currentZone, zone);
+
+                        // gestion d'un blot
                         if(gameState->zones[zone].nb_checkers==1 && gameState->zones[zone].player != gameState->currentPlayer){
                             MoveCheckerBar(gameState, zone);
                         }
@@ -143,10 +156,10 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                         diff = gameState->currentZone - zone;
                         diff = ABS(diff);
                         if(gameState->die1 == diff){
-                            gameState->die1 = 0;
+                            gameState->useDie1--;
                         }
                         if(gameState->die2 == diff){
-                            gameState->die2 = 0;
+                            gameState->useDie2--;
                         }
 
                         gameState->currentZone = -1;
@@ -182,8 +195,8 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
 {
     int i;
 
-    gameState->die1 = 0;
-    gameState->die2 = 0;
+    gameState->die1 = 0; gameState->useDie1 = 0;
+    gameState->die2 = 0; gameState->useDie2 = 0;
 
     gameState->scoreP1 = 0;
     gameState->scoreP2 = 0;
@@ -448,6 +461,13 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
             position.x = CENTER_X - txtButton->w/2; position.y += clip.h/2 - txtButton->h/2;
             SDL_BlitSurface(txtButton, NULL, window, &position);
             break;
+        case SELECT_ZONE_DST:
+            DisplayNumbers(window, gameState);
+            DisplayDice(window, gameState);
+
+            if (gameState.gameConfig.option)
+                DisplayHelp(window, gameState);
+            break;
         default:
             DisplayNumbers(window, gameState);
             DisplayDice(window, gameState);
@@ -495,21 +515,27 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
         }
     }
 
-    SDL_BlitSurface(overlays, &clip, window, &positionDie1);
+    if (gameState.useDie1 > 0)
+        SDL_BlitSurface(overlays, &clip, window, &positionDie1);
 
+    // Gestion des doubles des
     if (gameState.die1 == gameState.die2)
     {
         positionDie1.x -= 20 - clip.w;
-        SDL_BlitSurface(overlays, &clip, window, &positionDie1);
+        if (gameState.useDie1 > 1)
+            SDL_BlitSurface(overlays, &clip, window, &positionDie1);
     }
 
     clip.x = 126 + (gameState.die2 - 1) * clip.w;
-    SDL_BlitSurface(overlays, &clip, window, &positionDie2);
+    if (gameState.useDie2 > 0)
+        SDL_BlitSurface(overlays, &clip, window, &positionDie2);
 
+    // Gestion des doubles des
     if (gameState.die1 == gameState.die2)
     {
         positionDie2.x += 20 + clip.w;
-        SDL_BlitSurface(overlays, &clip, window, &positionDie2);
+        if (gameState.useDie2 > 1)
+            SDL_BlitSurface(overlays, &clip, window, &positionDie2);
     }
 
     SDL_FreeSurface(overlays);
@@ -544,6 +570,41 @@ void DisplayNumbers(SDL_Surface* window, S_GameState gameState)
     }
 
     SDL_FreeSurface(numbers);
+}
+
+/* Procedure pour afficher les aides au mouvement
+ * @param SDL_Surface* window
+ *     Surface de la fenetre
+ * @param S_GameState gameState
+ *     Etat du jeu
+ */
+void DisplayHelp(SDL_Surface* window, S_GameState gameState)
+{
+    int i;
+    SDL_Surface *overlays = IMG_Load(DESIGN_PATH "overlays.png");
+    SDL_Rect clip, position;
+    clip.x = 400; clip.h = 15; clip.w = 30;
+
+    for (i=0; i<24; i++)
+    {
+        if (IsValidDst(i, &gameState))
+        {
+            position.y = (i < 12) ? 270 : 205;
+            clip.y = (i < 12) ? 15 : 0;
+
+            if (i < 12)
+                position.x = BORDER + (11-i) * ZONE_W + ZONE_W/2 - 15;
+            else
+                position.x = BORDER + (i-12) * ZONE_W + ZONE_W/2 - 15;
+
+            if (i < 6 || i > 17)
+                position.x += 2 * BORDER;
+
+            SDL_BlitSurface(overlays, &clip, window, &position);
+        }
+    }
+
+    SDL_FreeSurface(overlays);
 }
 
 /* Fonction de gestion de l'affichage du plateau de jeu

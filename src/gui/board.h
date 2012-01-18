@@ -6,6 +6,7 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState);
 void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState);
 void DisplayDice(SDL_Surface* window, S_GameState gameState);
 void DisplayNumbers(SDL_Surface* window, S_GameState gameState);
+void DisplayHelp(SDL_Surface* window, S_GameState gameState);
 
 int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunctions, S_GameConfig gameConfig);
 

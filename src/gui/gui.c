@@ -27,7 +27,7 @@ int InitWindow(SDL_Surface** window, SDL_Surface** icon)
     *icon = IMG_Load(DESIGN_PATH "icon.png");
     SDL_WM_SetIcon(*icon, NULL);
 
-    // Chargement de la fenetre
+    // Chargement de la fenetreelse
     *window = SDL_SetVideoMode(WIDTH, HEIGHT, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
 
     if (*window == NULL)
@@ -159,23 +159,27 @@ int IsValidSrc(int zone, S_GameState* gameState)
 int IsValidDst(int zone, S_GameState* gameState)
 {
     int valid = 0;
-    if(gameState->die1 != 0){
-        valid |= (zone + gameState->die1 == gameState->currentZone &&
+    if(gameState->useDie1 > 0)
+    {
+        valid |= (zone - gameState->die1 == gameState->currentZone &&
                   gameState->currentPlayer == EPlayer2) ||
-                  (zone - gameState->die1 == gameState->currentZone &&
+                  (zone + gameState->die1 == gameState->currentZone &&
                   gameState->currentPlayer == EPlayer1);
     }
-    if(gameState->die2 != 0){
-        valid |= (zone + gameState->die2 == gameState->currentZone &&
+
+    if(gameState->useDie2 > 0)
+    {
+        valid |= (zone - gameState->die2 == gameState->currentZone &&
                   gameState->currentPlayer == EPlayer2) ||
-                  (zone - gameState->die2 == gameState->currentZone &&
+                  (zone + gameState->die2 == gameState->currentZone &&
                   gameState->currentPlayer == EPlayer1);
     }
+
     valid &= (zone != -1);
     valid &= (zone != EPos_BarP1);
     valid &= (zone != EPos_BarP2);
     valid &= (gameState->zones[zone].nb_checkers <= 1 ||
              gameState->zones[zone].player == gameState->currentPlayer);
 
-    return valid;;
+    return valid;
 }
