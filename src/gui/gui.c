@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdarg.h>
+
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include <SDL/SDL_ttf.h>
@@ -157,6 +159,51 @@ void DisplayButton(SDL_Surface* window, int x, int y, char* label, int select)
     txtButton = TTF_RenderText_Blended(font, label, select ? selectColor : black);
     position.x = x - txtButton->w/2; position.y = y - txtButton->h/2;
     SDL_BlitSurface(txtButton, NULL, window, &position);
+
+    TTF_CloseFont(font);
+    SDL_FreeSurface(overlays);
+}
+
+/* Procedure de dessin de bouton
+ * @param SDL_Surface* window
+ *     Surface de la fenetre
+ * @param int nb
+ *     Nombre de lignes
+ * @param char* ...
+ *     Lignes de texte
+ */
+void DisplayPopup(SDL_Surface* window, int nb, ...)
+{
+    SDL_Surface *overlays = IMG_Load(DESIGN_PATH "overlays.png");
+    SDL_Rect clip, position;
+    TTF_Font *font = TTF_OpenFont(DESIGN_PATH "board.ttf", 20);
+    SDL_Color black = {0,0,0};
+    SDL_Surface *txtPopup = NULL;
+    int i;
+    char* line = NULL;
+
+    va_list lines;
+    va_start(lines, nb);
+
+    clip.x = 180; clip.y = 80; clip.w = 250; clip.h = 200;
+    position.x = CENTER_X - clip.w/2; position.y = CENTER_Y - clip.h/2;
+    SDL_BlitSurface(overlays, &clip, window, &position);
+
+    position.y = 180;
+
+    for (i=0; i<nb; i++)
+    {
+        line = (char*)va_arg(lines, char*);
+        txtPopup = TTF_RenderText_Blended(font, line, black);
+        position.x = CENTER_X - txtPopup->w/2;
+
+        if (i > 0)
+            position.y += txtPopup->h;
+
+        SDL_BlitSurface(txtPopup, NULL, window, &position);
+    }
+
+    va_end(lines);
 
     TTF_CloseFont(font);
     SDL_FreeSurface(overlays);

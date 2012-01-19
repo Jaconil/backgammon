@@ -65,6 +65,18 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     break;
                 case SDL_MOUSEBUTTONUP:
                     gameState->selected = NONE_BOARD;
+
+                    // Bouton "Lancer"
+                    if (ClickRect(event, bx, 250, 100, 30))
+                    {
+                        if (IsPossibleMove(gameState))
+                        {
+                            RollDice(gameState);
+                            gameState->currentStage = SELECT_ZONE_SRC;
+                        }
+                        else
+                            gameState->currentStage = PASS_POPUP;
+                    }
                     break;
             }
             break;
@@ -110,6 +122,7 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                 case SDL_MOUSEBUTTONUP:
                     // Selection d'une zone source
                     zone = ClickZone(event);
+
                     if (IsValidDst(zone, gameState))
                         DoMove(zone, gameState);
                     else if (IsValidSrc(zone, gameState))
@@ -352,13 +365,6 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
  */
 void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
 {
-    SDL_Surface *overlays = IMG_Load(DESIGN_PATH "overlays.png");
-    SDL_Rect clip, position;
-    TTF_Font *font = TTF_OpenFont(DESIGN_PATH "board.ttf", 20);
-    SDL_Color black = {0,0,0};
-    SDL_Surface *txtPopup = NULL;
-
-
     switch (gameState.currentStage)
     {
         case WAITING_FIRST_ROLL:
@@ -371,32 +377,13 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
                                    CENTER_Y + 20, "Lancer", gameState.selected == BUTTON2);
             break;
         case FIRST_ROLL_POPUP:
-            DisplayDice(window, gameState);
-
-            // Affichage de la popup
-            clip.x = 180; clip.y = 80; clip.w = 250; clip.h = 200;
-            position.x = CENTER_X - clip.w/2; position.y = CENTER_Y - clip.h/2;
-            SDL_BlitSurface(overlays, &clip, window, &position);
-
-            txtPopup = TTF_RenderText_Blended(font, "Le joueur", black);
-            position.x = CENTER_X - txtPopup->w/2; position.y = 180;
-            SDL_BlitSurface(txtPopup, NULL, window, &position);
-
-            position.y += txtPopup->h;
             if (gameState.currentPlayer == EPlayer1)
-                txtPopup = TTF_RenderText_Blended(font, gameState.gameConfig.namePlayer1, black);
+                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "commence.");
             else
-                txtPopup = TTF_RenderText_Blended(font, gameState.gameConfig.namePlayer2, black);
-            position.x = CENTER_X - txtPopup->w/2;
-            SDL_BlitSurface(txtPopup, NULL, window, &position);
+                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "commence.");
 
-            position.y += txtPopup->h;
-            txtPopup = TTF_RenderText_Blended(font, "commence.", black);
-            position.x = CENTER_X - txtPopup->w/2;
-            SDL_BlitSurface(txtPopup, NULL, window, &position);
-
-            // Bouton de la popup
             DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
+            DisplayDice(window, gameState);
             break;
         case SELECT_ZONE_DST:
             DisplayNumbers(window, gameState);
@@ -410,10 +397,6 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
             DisplayDice(window, gameState);
             break;
     }
-
-    TTF_CloseFont(font);
-    SDL_FreeSurface(txtPopup);
-    SDL_FreeSurface(overlays);
 }
 
 /* Procedure pour afficher les des
@@ -432,6 +415,8 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
     positionDie1.y = CENTER_Y - clip.h/2;
     positionDie2.y = CENTER_Y - clip.h/2;
 
+    printf("dice : %i %i\n", gameState.useDie1, gameState.useDie2);
+
     if (gameState.currentStage == FIRST_ROLL_POPUP)
     {
         positionDie1.x = CENTER_LEFT - clip.w/2;
@@ -443,11 +428,13 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
         {
             positionDie1.x = CENTER_LEFT - 10 - clip.w;
             positionDie2.x = CENTER_LEFT + 10;
+            printf("1- %i et %i\n", positionDie1.x, positionDie2.x);
         }
         else
         {
             positionDie1.x = CENTER_RIGHT - 10 - clip.w;
             positionDie2.x = CENTER_RIGHT + 10;
+            printf("1- %i et %i\n", positionDie1.x, positionDie2.x);
         }
     }
 
@@ -457,7 +444,8 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
     // Gestion des doubles des
     if (gameState.die1 == gameState.die2)
     {
-        positionDie1.x -= 20 - clip.w;
+        positionDie1.x -= (20 + clip.w);
+        printf("2- %i\n", positionDie1.x);
         if (gameState.useDie1 > 1)
             SDL_BlitSurface(overlays, &clip, window, &positionDie1);
     }
@@ -469,7 +457,9 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
     // Gestion des doubles des
     if (gameState.die1 == gameState.die2)
     {
+        printf("3- %i\n", positionDie2.x);
         positionDie2.x += 20 + clip.w;
+        printf("3b- %i\n", positionDie2.x);
         if (gameState.useDie2 > 1)
             SDL_BlitSurface(overlays, &clip, window, &positionDie2);
     }
@@ -523,7 +513,7 @@ void DisplayHelp(SDL_Surface* window, S_GameState gameState)
 
     for (i=0; i<24; i++)
     {
-        if (IsValidDst(i, &gameState))
+        if (gameState.currentZone != -1 && IsValidDst(i, &gameState))
         {
             position.y = (i < 12) ? 270 : 205;
             clip.y = (i < 12) ? 15 : 0;
@@ -579,8 +569,11 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
             event.type == SDL_KEYUP)
         {
             SDL_BlitSurface(board_bg, NULL, window, &position);
+            printf("DEBUG 1\n");
             DisplayCheckers(window, gameState);
+            printf("DEBUG 2\n");
             DisplayBoardOverlays(window, gameState);
+            printf("DEBUG 3\n");
             //DisplayScore(window, gameConfig);
         }
 
@@ -588,6 +581,7 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
 
         // Gestion des evenements
         E_MenuSelected button = EventsBoard(&event, &gameState);
+        printf("DEBUG 4\n");
 
         if (button == QUIT_BOARD)
         {

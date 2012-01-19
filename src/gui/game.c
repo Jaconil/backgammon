@@ -122,10 +122,9 @@ void DoMove(int zone, S_GameState* gameState)
 
     int diff = abs(gameState->currentZone - zone);
 
-    if (gameState->die1 == diff)
+    if (gameState->die1 == diff && gameState->useDie1 > 0)
         gameState->useDie1--;
-
-    if (gameState->die2 == diff)
+    else if (gameState->die2 == diff && gameState->useDie2 > 0)
         gameState->useDie2--;
 
     gameState->currentZone = -1;

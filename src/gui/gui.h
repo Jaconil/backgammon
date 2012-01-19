@@ -9,5 +9,6 @@ int ClickRect(SDL_Event* event, int x, int y, int w, int h);
 int ClickZone(SDL_Event* event);
 
 void DisplayButton(SDL_Surface* window, int x, int y, char* label, int select);
+void DisplayPopup(SDL_Surface* window, int nb, ...);
 
 #endif
