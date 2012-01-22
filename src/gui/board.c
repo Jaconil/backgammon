@@ -580,7 +580,7 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
         SDL_Flip(window);
 
         // Gestion des evenements
-        E_MenuSelected button = EventsBoard(&event, &gameState);
+        E_BoardSelected button = EventsBoard(&event, &gameState);
         printf("DEBUG 4\n");
 
         if (button == QUIT_BOARD)
