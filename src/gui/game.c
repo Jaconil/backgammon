@@ -141,7 +141,10 @@ void DoMove(int zone, S_GameState* gameState)
             else
                 gameState->currentPlayer = EPlayer1;
 
-            gameState->currentStage = WAITING_ROLL_DBL;
+            if (gameState->cubeOwner == gameState->currentPlayer || gameState->stake == 1)
+                gameState->currentStage = WAITING_ROLL_DBL;
+        	else
+        		gameState->currentStage = WAITING_ROLL;
         }
     }
 }
