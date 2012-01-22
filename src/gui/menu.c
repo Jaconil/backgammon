@@ -255,7 +255,7 @@ void DisplayOverlays(SDL_Surface* window, TTF_Font* font, E_MenuSelected selecte
     else if (selected == PLAYER2)
         position.y = 186;
 
-    if (selected != NONE)
+    if (selected == PLAYER1 || selected == PLAYER2)
         SDL_BlitSurface(overlays, &clip, window, &position);
 
     // Indication de la couleur et des options
