@@ -6,7 +6,6 @@
 #include "../../backgammon.h"
 #include "ia.h"
 
-SMove MouvementsPrecedant[4];
 SMove Mouvements[4];
 int flecheJouable[25];//avec case barre 24
 
@@ -17,10 +16,6 @@ void initTableauSMoveLocal(SMove tableau[4]) {
 		tableau[i].src_point=-1;
 		tableau[i].dest_point=-1;
 	}
-}
-
-void StartGame() {
-	initTableauSMoveLocal(MouvementsPrecedant);
 }
 
 void rafraichitFlecheJouable(const SGameState * const gameState) {
@@ -342,6 +337,63 @@ void redirectionEnFonctionDesDes (const SGameState * const gameState) {
 	}
 }
 
+int calculerCoupRestant(const SGameState * const gameState, EPlayer unJoueur) {
+	int i;
+	double toReturn;
+	
+	toReturn=0;
+	for(i=EPos_1;i<=EPos_24;i++){ // on compte les pions sur le plateau
+		if(gameState->zones[i].player==unJoueur) {
+			if(unJoueur==EPlayer1) {
+				toReturn=toReturn + (i + 1)*gameState->zones[i].nb_checkers;
+			} else {
+				toReturn=toReturn + ((EPos_24 -i) +1)*gameState->zones[i].nb_checkers;
+			}
+		}
+	}
+	if(unJoueur==EPlayer1) { // on ajoute les pions coincés dans la barre
+		toReturn=toReturn + 25*gameState->zones[EPos_BarP1].nb_checkers;
+	} else {
+		toReturn=toReturn + 25*gameState->zones[EPos_BarP2].nb_checkers;
+	}
+	return toReturn;
+}
+
+int pratiquementGagner(double deplacementRestantP1, double deplacementRestantP2) {
+	int toReturn;
+	
+	if((0.75*deplacementRestantP1) >= deplacementRestantP2) {
+		toReturn=1;
+	} else {
+		toReturn=0;
+	}
+	return toReturn;
+}
+
+void InitLibrary(char name[50]) {
+
+}
+
+void StartMatch(const unsigned int target_score) {
+
+}
+
+void StartGame() {
+
+}
+
+void EndGame() {
+
+}
+
+int DoubleStack(const SGameState * const gameState) {	
+	return pratiquementGagner(calculerCoupRestant(gameState, EPlayer1), calculerCoupRestant(gameState, EPlayer2));
+}
+
+int TakeDouble(const SGameState * const gameState) {	
+	return !pratiquementGagner(calculerCoupRestant(gameState, EPlayer2),calculerCoupRestant(gameState, EPlayer1));
+}
+
 void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned int lastTimeError) {
 	rafraichitFlecheJouable(gameState);
 	initTableauSMoveLocal(Mouvements);
@@ -349,7 +401,6 @@ void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned i
 	redirectionEnFonctionDesDes(gameState);
 
 	copierTableauSMove(Mouvements,moves);
-	copierTableauSMove(moves, MouvementsPrecedant);
 }
 
 
