@@ -338,20 +338,38 @@ void InitPlayersName(S_GameConfig* gameConfig, E_GameMode gameMode, S_AIFunction
 
         char aiName[50];
         aiFunctions[0].AI_InitLibrary(aiName);
-        strncpy(gameConfig->namePlayer2, aiName, 12);
-        gameConfig->namePlayer2[13] = '\0';
+
+        if (strlen(aiName) > 0)
+        {
+            strncpy(gameConfig->namePlayer2, aiName, 12);
+            gameConfig->namePlayer2[13] = '\0';
+        }
+        else
+            strcpy(gameConfig->namePlayer2, "IA\0");
     }
     else
     {
         char aiName1[50];
         aiFunctions[0].AI_InitLibrary(aiName1);
-        strncpy(gameConfig->namePlayer1, aiName1, 12);
-        gameConfig->namePlayer1[13] = '\0';
+
+        if (strlen(aiName) > 0)
+        {
+            strncpy(gameConfig->namePlayer1, aiName1, 12);
+            gameConfig->namePlayer1[13] = '\0';
+        }
+        else
+            strcpy(gameConfig->namePlayer1, "IA 1\0");
 
         char aiName2[50];
         aiFunctions[1].AI_InitLibrary(aiName2);
-        strncpy(gameConfig->namePlayer2, aiName2, 12);
-        gameConfig->namePlayer2[13] = '\0';
+
+        if (strlen(aiName) > 0)
+        {
+            strncpy(gameConfig->namePlayer2, aiName2, 12);
+            gameConfig->namePlayer2[13] = '\0';
+        }
+        else
+            strcpy(gameConfig->namePlayer2, "IA 2\0");
     }
 }
 
