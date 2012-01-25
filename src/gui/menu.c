@@ -11,7 +11,7 @@
 #include "menu.h"
 #include "board.h"
 
-/* Procï¿½dure de saisie du nom d'un joueur
+/* Procedure de saisie du nom d'un joueur
  * @param char** name
  *      Nom du joueur
  * @param SDL_keysym keysym
@@ -51,7 +51,7 @@ void TextInput(char* name, SDL_keysym key)
     }
 }
 
-/* Procï¿½dure de gestion des evenements du menu
+/* Procedure de gestion des evenements du menu
  * @param SDL_Event* event
  *     Evenements de la fenetre
  * @param S_GameConfig gameConfig
@@ -139,7 +139,7 @@ E_MenuSelected EventsMenu(SDL_Event* event, S_GameConfig* gameConfig, E_MenuSele
     return clicked;
 }
 
-/* Procï¿½dure d'affichage des textes
+/* Procedure d'affichage des textes
  * @param SDL_Surface* window
  *     Surface de la fenetre
  * @param TTF_Font* font
@@ -163,7 +163,7 @@ void DisplayText(SDL_Surface* window, TTF_Font* font, E_GameMode gameMode, E_Men
     txtWhite = TTF_RenderText_Blended(font, "Blanc", black);
     txtOption1 = TTF_RenderText_Blended(font, "Aide aux mouvements", black);
     txtOption2 = TTF_RenderText_Blended(font, "Pas d'aide", black);
-    txtScore = TTF_RenderText_Blended(font, "Score ï¿½ atteindre :", black);
+    txtScore = TTF_RenderText_Blended(font, "Score à atteindre :", black);
 
     txtStart = TTF_RenderText_Blended(font, "Jouer", (selected == START)? selectColor : black);
     txtQuit = TTF_RenderText_Blended(font, "Quitter", (selected == QUIT)? selectColor : black);
@@ -185,7 +185,7 @@ void DisplayText(SDL_Surface* window, TTF_Font* font, E_GameMode gameMode, E_Men
         txtPlayer1 = TTF_RenderText_Blended(font, "IA 1 :", black);
         txtPlayer2 = TTF_RenderText_Blended(font, "IA 2 :", black);
         txtColor = TTF_RenderText_Blended(font, "Couleur de l'IA 1 :", black);
-        txtOption1 = TTF_RenderText_Blended(font, "Match instantanï¿½", black);
+        txtOption1 = TTF_RenderText_Blended(font, "Match instantané", black);
         txtOption2 = TTF_RenderText_Blended(font, "Match tour par tour", black);
     }
 
@@ -231,7 +231,7 @@ void DisplayText(SDL_Surface* window, TTF_Font* font, E_GameMode gameMode, E_Men
     SDL_FreeSurface(txtQuit);
 }
 
-/* Procï¿½dure de gestion de l'affichage des overlays
+/* Procedure de gestion de l'affichage des overlays
  * @param SDL_Surface* window
  *     Surface de la fenetre
  * @param TTF_Font* font
@@ -317,7 +317,7 @@ void DisplayOverlays(SDL_Surface* window, TTF_Font* font, E_MenuSelected selecte
     SDL_FreeSurface(overlays);
 }
 
-/* Procï¿½dure d'initialisation des noms des joueurs
+/* Procedure d'initialisation des noms des joueurs
  * @param S_GameConfig gameConfig
  *     Structure de configuration du jeu
  * @param E_GameMode gameMode
@@ -355,7 +355,7 @@ void InitPlayersName(S_GameConfig* gameConfig, E_GameMode gameMode, S_AIFunction
     }
 }
 
-/* Procï¿½dure de gestion de l'affichage du menu
+/* Procedure de gestion de l'affichage du menu
  * @param SDL_Surface* window
  *     Surface de la fenetre
  * @param E_GameMode gameMode
