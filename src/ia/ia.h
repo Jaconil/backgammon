@@ -104,7 +104,7 @@ void calculerStrategie(const SGameState * const gameState, int lastTimeError);
  *@return int
  *	retourne le numéro de la stratégie la plus efficace
  */
-int meilleurPlateau(SGameState* plateauATester, const SGameState * const gameState)
+int meilleurPlateau(SGameState* plateauATester, const SGameState * const gameState);
 
 /**
  *Retourne les cases possibles

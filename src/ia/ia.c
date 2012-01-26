@@ -138,31 +138,30 @@ void calculerStrategie(const SGameState * const gameState, int lastTimeError) {
 }
 
 int meilleurPlateau(SGameState* plateauATester, const SGameState * const gameState) {
-	SGameState *plateauEnCours;
+	SGameState plateauEnCours;
 	int toReturn;
 	
 	toReturn=FALSE;
-	plateauEnCours=NULL;
-	effectuerLesMouvements(plateauEnCours, gameState);
+	effectuerLesMouvements(&plateauEnCours, gameState);
 	// plateauEnCours est la simulation du plateau avec les déplacements du tableau Mouvements
 	
-	if(calculerCoupRestant(plateauEnCours, EPlayer1)>calculerCoupRestant(plateauATester, EPlayer1)) {
+	if(calculerCoupRestant(&plateauEnCours, EPlayer1)>calculerCoupRestant(plateauATester, EPlayer1)) {
 		toReturn=TRUE;
 	} else {
 		if(strategie==0) { // assurer en prenant le premier déplacement trouvé La comparaison avec un autre coup est donc faux
 				toReturn=FALSE;
 		} else {
 			if(strategie==1) { // privilégier la sortie d'un pion
-				if(nbPionEnJeu(plateauATester)<nbPionEnJeu(plateauEnCours)){ // s'il y a moins de pions en jeu, c'est qu'il en a sortie plus.
+				if(nbPionEnJeu(plateauATester)<nbPionEnJeu(&plateauEnCours)){ // s'il y a moins de pions en jeu, c'est qu'il en a sortie plus.
 					toReturn=TRUE;
 				}
 			} else {
 				if(strategie==2) { // privilégier l'attaque des blots
-					if(plateauATester->zones[EPos_BarP2].nb_checkers>plateauEnCours->zones[EPos_BarP2].nb_checkers) {
+					if(plateauATester->zones[EPos_BarP2].nb_checkers>plateauEnCours.zones[EPos_BarP2].nb_checkers) {
 						toReturn=TRUE;
 					}
 				} else { // privilégier la défense en ne créant pas de blot
-					if(nbBlotEnJeu(plateauATester)<nbBlotEnJeu(plateauEnCours)) {
+					if(nbBlotEnJeu(plateauATester)<nbBlotEnJeu(&plateauEnCours)) {
 						toReturn=TRUE;
 					}
 				}
@@ -264,9 +263,9 @@ void effectuerUnDeplacementTest(SGameState * plateau, int src_point, int de) {
 void effectuerLesMouvements(SGameState * plateauEnCours, const SGameState * const gameState){
 	int i;
 	int j;
-	printf("puddi\n");
 	for(j=EPos_1;j<=EPos_BarP2;j++) {
-		plateauEnCours->zones[j]=gameState->zones[j];
+		plateauEnCours->zones[j].player=gameState->zones[j].player;
+		plateauEnCours->zones[j].nb_checkers=gameState->zones[j].nb_checkers;
 	}
 	
 	for(i=0;i<4;i++) {
@@ -375,25 +374,25 @@ void decision4Move(const SGameState * const gameState) {
 	mouvementTroisiemeTrouve=FALSE;
 	
 	source1=EPos_BarP1;
-	while(!mouvementCompletTrouve && source1>=EPos_1) {
+	while(source1>=EPos_1) {
 		if(source1!=EPos_OutP1 && mouvementPossible(gameState,source1,gameState->die1)) {
 			plateau1= *gameState;
 			mouvementPremierTrouve=TRUE;
 			effectuerUnDeplacementTest(&plateau1, source1, gameState->die1);
 			source2=EPos_BarP1;
-			while(!mouvementCompletTrouve && source2>=EPos_1) {
+			while(source2>=EPos_1) {
 				if(source2!=EPos_OutP1 && mouvementPossible(&plateau1,source2,gameState->die1)) {
 					plateau2= plateau1;
 					mouvementDeuxiemeTrouve=TRUE;
 					effectuerUnDeplacementTest(&plateau2, source2, gameState->die1);
 					source3=EPos_BarP1;
-					while(!mouvementCompletTrouve && source3>=EPos_1) {
+					while(source3>=EPos_1) {
 						if(source2!=EPos_OutP1 && mouvementPossible(&plateau2,source3,gameState->die1)) {
 							plateau3= plateau2;
 							mouvementTroisiemeTrouve=TRUE;
 							effectuerUnDeplacementTest(&plateau3, source3, gameState->die1);
 							source4=EPos_BarP1;
-							while(!mouvementCompletTrouve && source4>=EPos_1) {
+							while(source4>=EPos_1) {
 								if(source4!=EPos_OutP1 && mouvementPossible(&plateau3,source4,gameState->die1)) {
 									plateau4=plateau3;
 									effectuerUnDeplacementTest(&plateau4, source4, gameState->die1);
@@ -568,19 +567,22 @@ int main (int argc, char *argv[]) {
 	
 	
 	while (theGame.zones[EPos_OutP1].nb_checkers<15) {
-	theGame.die1=(rand()%6)+1;	// die1
-	theGame.die2=(rand()%6)+1;	// die2
+		theGame.die1=(rand()%6)+1;	// die1
+		theGame.die2=(rand()%6)+1;	// die2
+		while (theGame.die2==theGame.die1) {
+			theGame.die2=(rand()%6)+1;	// die2
+		}
 	
-	for(j=0;j<4;j++) {
-		moveTab[j].src_point=-1;
-		moveTab[j].dest_point=-1;
-	}
-	printf("de1 : %i de2 : %i\n", theGame.die1, theGame.die2);	
-	MakeDecision(&theGame, moveTab, error);
-	for(i=0;i<4;i++) {
-		printf("deplacement %i : %i --> %i\n", i, moveTab[i].src_point, moveTab[i].dest_point);	
-		effectuerUnDeplacement(&theGame, moveTab[i].src_point, moveTab[i].dest_point);
-	}
+		for(j=0;j<4;j++) {
+			moveTab[j].src_point=-1;
+			moveTab[j].dest_point=-1;
+		}
+		printf("de1 : %i de2 : %i\n", theGame.die1, theGame.die2);	
+		MakeDecision(&theGame, moveTab, error);
+		for(i=0;i<4;i++) {
+			printf("deplacement %i : %i --> %i\n", i, moveTab[i].src_point, moveTab[i].dest_point);	
+			effectuerUnDeplacement(&theGame, moveTab[i].src_point, moveTab[i].dest_point);
+		}
 	
 	
 	
