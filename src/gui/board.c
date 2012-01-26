@@ -667,6 +667,40 @@ void DisplayHelp(SDL_Surface* window, S_GameState gameState)
     SDL_FreeSurface(overlays);
 }
 
+/* Procedure pour afficher le score
+ * @param SDL_Surface* window
+ *     Surface de la fenetre
+ * @param S_GameState gameState
+ *     Etat du jeu
+ */
+void DisplayScore(SDL_Surface* window, S_GameState gameState)
+{
+    TTF_Font *font = TTF_OpenFont(DESIGN_PATH "font.ttf", 23);
+    SDL_Color black = {0, 0, 0};
+    SDL_Rect position;
+
+    char scorePlayer1[20] = {'\0'};
+    char scorePlayer2[20] = {'\0'};
+
+    sprintf(scorePlayer1, "%s : %i", gameState.gameConfig.namePlayer1, gameState.scoreP1);
+    sprintf(scorePlayer2, "%s : %i", gameState.gameConfig.namePlayer2, gameState.scoreP1);
+
+    position.y = BOTTOM - BORDER / 2;
+
+    SDL_Surface *txtPlayer1 = TTF_RenderText_Blended(font, scorePlayer1, black);
+    SDL_Surface *txtPlayer2 = TTF_RenderText_Blended(font, scorePlayer2, black);
+
+    position.x = CENTER_LEFT - txtPlayer1->w/2;
+    SDL_BlitSurface(txtPlayer1, NULL, window, &position);
+
+    position.x = CENTER_RIGHT - txtPlayer2->w/2;
+    SDL_BlitSurface(txtPlayer2, NULL, window, &position);
+
+    SDL_FreeSurface(txtPlayer1);
+    SDL_FreeSurface(txtPlayer2);
+    TTF_CloseFont(font);
+}
+
 /* Fonction de gestion de l'affichage du plateau de jeu
  * @param SDL_Surface* window
  *     Surface de la fenetre
@@ -692,7 +726,7 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
     SDL_BlitSurface(board_bg, NULL, window, &position);
     DisplayCheckers(window, gameState);
     DisplayBoardOverlays(window, gameState);
-    //DisplayScore(window, gameConfig);
+    DisplayScore(window, gameState);
 
     int quit = 0, finish = 0;
     SDL_Event event;
@@ -705,19 +739,15 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
             event.type == SDL_KEYUP)
         {
             SDL_BlitSurface(board_bg, NULL, window, &position);
-            //printf("DEBUG 1\n");
             DisplayCheckers(window, gameState);
-            //printf("DEBUG 2\n");
             DisplayBoardOverlays(window, gameState);
-            //printf("DEBUG 3\n");
-            //DisplayScore(window, gameConfig);
+            DisplayScore(window, gameState);
         }
 
         SDL_Flip(window);
 
         // Gestion des evenements
         E_BoardSelected button = EventsBoard(&event, &gameState);
-        //printf("DEBUG 4\n");
 
         if (button == QUIT_BOARD)
         {
