@@ -8,6 +8,7 @@
 
 SMove Mouvements[4];
 int flecheJouable[25];//avec case barre 24
+int strategie;
 
 void initTableauSMoveLocal(SMove tableau[4]) {
 	int i;
@@ -35,12 +36,14 @@ void copierTableauSMove(SMove source[4], SMove destination[4]) {
 	memcpy(destination,source,sizeof(source)*4);
 }
 
-int lastChecker() {
+int lastChecker(const SGameState * const gameState) {
 	int toReturn;
 	int i;
 	
 	i=24;
 	toReturn=-1;
+	
+	rafraichitFlecheJouable(gameState);
 	
 	while (toReturn==-1 && i>=0) {
 		if (flecheJouable[i]) {
@@ -49,6 +52,34 @@ int lastChecker() {
 		i--;
 	}
 	
+	return toReturn;
+}
+
+int nbPionEnJeu(const SGameState * const gameState) {
+	int toReturn;
+	int i;
+	
+	toReturn=0;
+	rafraichitFlecheJouable(gameState);
+	
+	for(i=0;i<=24;i++) {
+		toReturn=toReturn+flecheJouable[i];
+	}
+	return toReturn;	
+}
+
+int nbBlotEnJeu(const SGameState * const gameState) {
+	int toReturn;
+	int i;
+	
+	toReturn=0;
+	rafraichitFlecheJouable(gameState);
+	
+	for(i=0;i<24;i++) { // strictement inférieur a 24 car la barre ne compte pas
+		if(flecheJouable[i]==1) {
+			toReturn++;
+		}
+	}
 	return toReturn;
 }
 
@@ -88,27 +119,56 @@ int nbMove(int a, int b){
 	return Result;
 }
 
-int nombrePionBar(const SGameState * const gameState) {
-	return gameState->zones[EPos_BarP1].nb_checkers;
-}
-
-int distanceToWin(const SGameState * const gameState){
-	int Result, i;
-	int nombrePionsPrisonniers;
-	
-	Result=0;
-	
-	for(i=EPos_1;i<=EPos_24;i++){
-		if(gameState->zones[i].player==EPlayer1){
-			// i+1 est le nombre de déplacement restant pour sortir le pion
-			Result=Result+((i+1)*gameState->zones[i].nb_checkers);
+void calculerStrategie(const SGameState * const gameState, int lastTimeError) {
+	if(lastTimeError==1) {
+		strategie=0; // strategie la plus simple et la plus sûr
+	} else {
+		rafraichitFlecheJouable(gameState);
+		if(lastChecker(gameState)<= EPos_6) {
+			strategie=1; // on peu sortir un pion
+		} else {
+			if(calculerCoupRestant(gameState, EPlayer1)>calculerCoupRestant(gameState, EPlayer2)) { // cas ou on est en retard dans le jeu
+				strategie=2;
+			} else {
+				strategie=3;
+			}
 		}
 	}
-	nombrePionsPrisonniers=nombrePionBar(gameState);
+}
+
+int meilleurPlateau(SGameState* plateauATester, const SGameState * const gameState) {
+	SGameState *plateauEnCours;
+	int toReturn;
 	
-	Result=Result+(nombrePionsPrisonniers*25);
+	toReturn=FALSE;
+	plateauEnCours=NULL;
+	effectuerLesMouvements(plateauEnCours, gameState);
+	// plateauEnCours est la simulation du plateau avec les déplacements du tableau Mouvements
 	
-	return Result;
+	if(calculerCoupRestant(plateauEnCours, EPlayer1)>calculerCoupRestant(plateauATester, EPlayer1)) {
+		toReturn=TRUE;
+	} else {
+		if(strategie==0) { // assurer en prenant le premier déplacement trouvé La comparaison avec un autre coup est donc faux
+				toReturn=FALSE;
+		} else {
+			if(strategie==1) { // privilégier la sortie d'un pion
+				if(nbPionEnJeu(plateauATester)<nbPionEnJeu(plateauEnCours)){ // s'il y a moins de pions en jeu, c'est qu'il en a sortie plus.
+					toReturn=TRUE;
+				}
+			} else {
+				if(strategie==2) { // privilégier l'attaque des blots
+					if(plateauATester->zones[EPos_BarP2].nb_checkers>plateauEnCours->zones[EPos_BarP2].nb_checkers) {
+						toReturn=TRUE;
+					}
+				} else { // privilégier la défense en ne créant pas de blot
+					if(nbBlotEnJeu(plateauATester)<nbBlotEnJeu(plateauEnCours)) {
+						toReturn=TRUE;
+					}
+				}
+			}
+		}
+	}
+	return toReturn;
 }
 
 int possibleCase(const SGameState * const gameState, int source){
@@ -132,7 +192,7 @@ int mouvementPossible(const SGameState * const gameState, int source, int distan
 	int nbrPionBar;
 	int dernierPion;
 	
-	nbrPionBar=nombrePionBar(gameState);
+	nbrPionBar=gameState->zones[EPos_BarP1].nb_checkers;
 	rafraichitFlecheJouable(gameState);
 
 	if ((distance==gameState->die1 || distance==gameState->die2) && flecheJouable[source]) {
@@ -147,7 +207,7 @@ int mouvementPossible(const SGameState * const gameState, int source, int distan
 				toReturn=FALSE;
 			}
 		} else {
-			dernierPion=lastChecker();
+			dernierPion=lastChecker(gameState);
 			if (dernierPion<=EPos_6) { //si tous les pions sont dans le home
 				if (distance==source+1) {//cas du nombre exact pour sortir
 					toReturn=TRUE;
@@ -173,17 +233,49 @@ int mouvementPossible(const SGameState * const gameState, int source, int distan
 	return toReturn;
 }
 
-void effectuerUnDeplacementTest(SGameState * plateau, int source, int de) {
-	plateau->zones[source].nb_checkers=plateau->zones[source].nb_checkers-1;
-	if(source==EPos_BarP1) {
-		plateau->zones[25-de].nb_checkers=plateau->zones[25-de].nb_checkers+1;
-		plateau->zones[25-de].player=EPlayer1;
+void effectuerUnDeplacementTest(SGameState * plateau, int src_point, int de) {
+	int source;
+	
+	if(src_point==EPos_BarP1) {
+		source=25;
 	} else {
-		if(source-de>=0) {// distance moins la valeur du dé plus la case zéro
-			plateau->zones[source-de].nb_checkers=plateau->zones[source-de].nb_checkers+1;
+		source=src_point;
+	}
+	
+	if(source>-1){
+		plateau->zones[source].nb_checkers=plateau->zones[source].nb_checkers-1;
+		
+		if((plateau->zones[source-de].player==EPlayer2) && (plateau->zones[source-de].nb_checkers==1)) { //cas ou on mange un pion adverse
+			plateau->zones[EPos_BarP2].nb_checkers++;
 			plateau->zones[source-de].player=EPlayer1;
 		} else {
-			plateau->zones[EPos_OutP1].nb_checkers=plateau->zones[EPos_OutP1].nb_checkers+1;
+			if(source-de>=0) {// distance moins la valeur du dé plus la case zéro
+				plateau->zones[source-de].nb_checkers++;
+				plateau->zones[source-de].player=EPlayer1;
+			} else {
+				plateau->zones[EPos_OutP1].nb_checkers++;
+			}
+		}
+	}
+}
+
+void effectuerLesMouvements(SGameState * plateauEnCours, const SGameState * const gameState){
+	int i;
+	int j;
+	printf("puddi\n");
+	for(j=EPos_1;j<=EPos_BarP2;j++) {
+		plateauEnCours->zones[j]=gameState->zones[j];
+	}
+	
+	for(i=0;i<4;i++) {
+		if(Mouvements[i].src_point>-1) {
+			plateauEnCours->zones[Mouvements[i].src_point].nb_checkers--;
+			if((plateauEnCours->zones[Mouvements[i].dest_point].player==EPlayer2) && (plateauEnCours->zones[Mouvements[i].dest_point].nb_checkers==1)) {// cas ou on mange un pion adverse
+				plateauEnCours->zones[EPos_BarP2].nb_checkers++;
+				plateauEnCours->zones[Mouvements[i].dest_point].nb_checkers--;
+			}
+			plateauEnCours->zones[Mouvements[i].dest_point].nb_checkers++;
+			plateauEnCours->zones[Mouvements[i].dest_point].player=EPlayer1;
 		}
 	}
 }
@@ -211,6 +303,7 @@ void decision2Move(const SGameState * const gameState) {
 	int source2; // source du déplacement dans la seconde boucle
 	
 	SGameState plateau1;
+	SGameState plateau2;
 	
 	int mouvementCompletTrouve;
 	int mouvementPremierTrouve;
@@ -228,23 +321,27 @@ void decision2Move(const SGameState * const gameState) {
 			de2=gameState->die1;
 		}
 		source1=EPos_BarP1;
-		while (!mouvementCompletTrouve && source1>=EPos_1) {// si pas de mouvement complet et qu'on n'a pas finit de parcourir le plateau pour le permier déplacement
+		while (source1>=EPos_1) {// si pas de mouvement complet et qu'on n'a pas finit de parcourir le plateau pour le permier déplacement
 			if (source1!=EPos_OutP1 && mouvementPossible(gameState,source1,de1)){// un premier mouvement est possible
 				plateau1=*gameState;
 				mouvementPremierTrouve=TRUE;
 				effectuerUnDeplacementTest(&plateau1, source1, de1);
 				source2=EPos_BarP1;
-				while (!mouvementCompletTrouve && (source2>=EPos_1)) {// si pas de mouvement complet et qu'on n'a pas finit de parcourir le plateau pour le second déplacement
+				while (source2>=EPos_1) {// si pas de mouvement complet et qu'on n'a pas finit de parcourir le plateau pour le second déplacement
 					if (source2!=EPos_OutP1 && mouvementPossible(&plateau1,source2,de2)){// un second déplacement est possible
-						enregistrerUnDeplacement(0, source1, de1);
-						enregistrerUnDeplacement(1, source2, de2);
-						mouvementCompletTrouve=TRUE;
+						plateau2=plateau1;
+						effectuerUnDeplacementTest(&plateau2, source2, de2);
+						if(!mouvementCompletTrouve || meilleurPlateau(&plateau2, gameState)) {
+							enregistrerUnDeplacement(0, source1, de1);
+							enregistrerUnDeplacement(1, source2, de2);
+							mouvementCompletTrouve=TRUE;
+						}		
 					}
 					source2=source2-1;
 				}	
 			}
 			if(mouvementPremierTrouve && !mouvementCompletTrouve){// cas ou 1 seul dé est jouable
-				if((Mouvements[0].dest_point - Mouvements[0].src_point)<de1){// si le premier déplacement est plus grand que l'ancien, il faut le préférer.
+				if(meilleurPlateau(&plateau1, gameState)){// si le premier déplacement est plus grand que l'ancien, il faut le préférer. C'est ce que fait meilleurPlateau
 					enregistrerUnDeplacement(0, source1, de1);
 				}
 				mouvementPremierTrouve=FALSE;
@@ -259,6 +356,7 @@ void decision4Move(const SGameState * const gameState) {
 	SGameState  plateau1;
 	SGameState  plateau2;
 	SGameState  plateau3;
+	SGameState  plateau4;
 	
 	int mouvementCompletTrouve;
 	int mouvementPremierTrouve;
@@ -295,15 +393,19 @@ void decision4Move(const SGameState * const gameState) {
 							source4=EPos_BarP1;
 							while(!mouvementCompletTrouve && source4>=EPos_1) {
 								if(source4!=EPos_OutP1 && mouvementPossible(&plateau3,source4,gameState->die1)) {
-								mouvementCompletTrouve=TRUE;
-								enregistrerUnDeplacement(0, source1, gameState->die1);
-								enregistrerUnDeplacement(1, source2, gameState->die1);
-								enregistrerUnDeplacement(2, source3, gameState->die1);
-								enregistrerUnDeplacement(3, source4, gameState->die1);
+									plateau4=plateau3;
+									effectuerUnDeplacementTest(&plateau4, source4, gameState->die1);
+									if(!mouvementCompletTrouve || meilleurPlateau(&plateau4, gameState)) {
+										enregistrerUnDeplacement(0, source1, gameState->die1);
+										enregistrerUnDeplacement(1, source2, gameState->die1);
+										enregistrerUnDeplacement(2, source3, gameState->die1);
+										enregistrerUnDeplacement(3, source4, gameState->die1);
+										mouvementCompletTrouve=TRUE;
+									}
 								}
 								source4=source4-1;
 							}
-							if(!mouvementCompletTrouve) {
+							if(!mouvementCompletTrouve && meilleurPlateau(&plateau3, gameState)) {
 								enregistrerUnDeplacement(0, source1, gameState->die1);
 								enregistrerUnDeplacement(1, source2, gameState->die1);
 								enregistrerUnDeplacement(2, source3, gameState->die1);
@@ -311,14 +413,14 @@ void decision4Move(const SGameState * const gameState) {
 						}
 						source3=source3-1;
 					}
-					if(!mouvementTroisiemeTrouve) {
+					if(!mouvementTroisiemeTrouve && meilleurPlateau(&plateau2, gameState)) {
 						enregistrerUnDeplacement(0, source1, gameState->die1);
 						enregistrerUnDeplacement(1, source2, gameState->die1);
 					}
 				}
 				source2=source2-1;
 			}
-			if(!mouvementDeuxiemeTrouve) {
+			if(!mouvementDeuxiemeTrouve && meilleurPlateau(&plateau1, gameState)) {
 				enregistrerUnDeplacement(0, source1, gameState->die1);
 			}
 		}
@@ -379,7 +481,7 @@ void StartMatch(const unsigned int target_score) {
 }
 
 void StartGame() {
-
+	strategie=0;
 }
 
 void EndGame() {
@@ -397,6 +499,7 @@ int TakeDouble(const SGameState * const gameState) {
 void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned int lastTimeError) {
 	rafraichitFlecheJouable(gameState);
 	initTableauSMoveLocal(Mouvements);
+	calculerStrategie(gameState, lastTimeError);
 	
 	redirectionEnFonctionDesDes(gameState);
 
