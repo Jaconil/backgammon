@@ -66,6 +66,10 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                 case SDL_MOUSEBUTTONUP:
                     gameState->selected = NONE_BOARD;
 
+                    // Bouton "Doubler"
+                    if (ClickRect(event, bx, 210, 100, 30))
+                        gameState->currentStage = DOUBLE_POPUP;
+
                     // Bouton "Lancer"
                     if (ClickRect(event, bx, 250, 100, 30))
                     {
@@ -75,6 +79,69 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                             gameState->currentStage = SELECT_ZONE_SRC;
                         else
                             gameState->currentStage = PASS_POPUP;
+                    }
+                    break;
+            }
+            break;
+        case WAITING_ROLL:
+            bx = (gameState->currentPlayer == EPlayer1) ? 122 : 464;
+
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONDOWN:
+                    // Bouton "Lancer"
+                    if (ClickRect(event, bx, 230, 100, 30))
+                        gameState->selected = BUTTON1;
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    gameState->selected = NONE_BOARD;
+
+                    // Bouton "Lancer"
+                    if (ClickRect(event, bx, 230, 100, 30))
+                    {
+                        RollDice(gameState);
+
+                        if (IsPossibleMove(gameState))
+                            gameState->currentStage = SELECT_ZONE_SRC;
+                        else
+                            gameState->currentStage = PASS_POPUP;
+                    }
+                    break;
+            }
+            break;
+        case DOUBLE_POPUP:
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONDOWN:
+                    // Bouton "Accepter"
+                    if (ClickRect(event, 234, 305, 100, 30))
+                        gameState->selected = BUTTON1;
+
+                    // Bouton "Refuser"
+                    if (ClickRect(event, 354, 305, 100, 30))
+                        gameState->selected = BUTTON2;
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    gameState->selected = NONE_BOARD;
+
+                    // Bouton "Accepter"
+                    if (ClickRect(event, 234, 305, 100, 30))
+                    {
+                        gameState->stake *= 2;
+
+                        if (gameState->currentPlayer == EPlayer1)
+                            gameState->cubeOwner = EPlayer2;
+                        else
+                            gameState->cubeOwner = EPlayer1;
+
+                        gameState->currentStage = WAITING_ROLL;
+                    }
+
+                    // Bouton "Refuser"
+                    if (ClickRect(event, 354, 305, 100, 30))
+                    {
+                        // Le joueur courant gagne la partie
+                        //TODO:
                     }
                     break;
             }
@@ -402,6 +469,10 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
             DisplayButton(window, (gameState.currentPlayer == EPlayer1) ? CENTER_LEFT : CENTER_RIGHT,
                                    CENTER_Y + 20, "Lancer", gameState.selected == BUTTON2);
             break;
+        case WAITING_ROLL:
+            DisplayButton(window, (gameState.currentPlayer == EPlayer1) ? CENTER_LEFT : CENTER_RIGHT,
+                                   CENTER_Y, "Lancer", gameState.selected == BUTTON1);
+            break;
         case FIRST_ROLL_POPUP:
             if (gameState.currentPlayer == EPlayer1)
                 DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "commence.");
@@ -427,6 +498,16 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
                 DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "passe son tour.");
 
             DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
+
+            break;
+        case DOUBLE_POPUP:
+            if (gameState.currentPlayer == EPlayer1)
+                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "veut doubler.");
+            else
+                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "veut doubler.");
+
+            DisplayButton(window, CENTER_X - 60, 320, "Accepter", gameState.selected == BUTTON1);
+            DisplayButton(window, CENTER_X + 60, 320, "Refuser", gameState.selected == BUTTON2);
 
             break;
         default:
@@ -470,8 +551,6 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
             positionDie2.x = CENTER_RIGHT + 10;
         }
     }
-
-    printf("useDice : %i et %i\n", gameState.useDie1, gameState.useDie2);
 
     if (gameState.useDie1 > 0)
         SDL_BlitSurface(overlays, &clip, window, &positionDie1);

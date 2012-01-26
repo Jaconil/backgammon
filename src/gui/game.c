@@ -331,5 +331,5 @@ int CanBearOff(S_GameState* gameState)
 int IsFinish(S_GameState* gameState)
 {
     EPosition pos = (gameState->currentPlayer == EPlayer1) ? EPos_OutP1 : EPos_OutP2;
-    return (gameState->zones[pos].nb_checkers == 15)
+    return (gameState->zones[pos].nb_checkers == 15);
 }
