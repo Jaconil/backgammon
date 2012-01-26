@@ -65,7 +65,8 @@ typedef enum
     DOUBLE_POPUP,
     WAITING_ROLL,
     PASS_POPUP,
-    FINISH_POPUP
+    FINISH_GAME_POPUP,
+    FINISH_MATCH_POPUP
 } E_Stage;
 
 // Texte du plateau selectionne
@@ -74,7 +75,8 @@ typedef enum
     BUTTON1,
     BUTTON2,
     NONE_BOARD,
-    QUIT_BOARD
+    QUIT_BOARD,
+    MENU_BOARD
 } E_BoardSelected;
 
 // GameState personnalise, reprennant celle de l'interface en rajoutant les attributs manquants

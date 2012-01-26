@@ -228,11 +228,35 @@ void DoMove(int zone, S_GameState* gameState)
     gameState->currentZone = -1;
 
     // Gestion du changement de transition
-    if (gameState->useDie1 == 0 && gameState->useDie2 == 0)
+    // 1- Le joueur a-t'il gagne ?
+    if (IsFinish(gameState))
     {
-        if (IsFinish(gameState))
-            gameState->currentStage = FINISH_POPUP;
+        // On regarde la position des pions adversaires pour connaitre les points gagnes
+        int points = GetPoints(gameState);
+
+        // On augmente le score
+        //  et on le reajuste pour ne pas depasser la limite
+        if (gameState->currentPlayer == EPlayer1)
+        {
+            gameState->scoreP1 += points * gameState->stake;
+
+            if (gameState->scoreP1 > gameState->gameConfig.points)
+                gameState->scoreP1 = gameState->gameConfig.points;
+        }
         else
+        {
+            gameState->scoreP2 += points * gameState->stake;
+
+            if (gameState->scoreP2 > gameState->gameConfig.points)
+                gameState->scoreP2 = gameState->gameConfig.points;
+        }
+
+        gameState->currentStage = FINISH_GAME_POPUP;
+    }
+    else
+    {
+        // 2- Le joueur a-t'il fini son tour ?
+        if (gameState->useDie1 == 0 && gameState->useDie2 == 0)
         {
             if (gameState->currentPlayer == EPlayer1)
                 gameState->currentPlayer = EPlayer2;
@@ -241,8 +265,8 @@ void DoMove(int zone, S_GameState* gameState)
 
             if (gameState->cubeOwner == gameState->currentPlayer || gameState->stake == 1)
                 gameState->currentStage = WAITING_ROLL_DBL;
-        	else
-        		gameState->currentStage = WAITING_ROLL;
+            else
+                gameState->currentStage = WAITING_ROLL;
         }
     }
 }
@@ -269,7 +293,6 @@ int IsPossibleMove(S_GameState* gameState)
 
             while (!possible && j < 28)
             {
-                printf("pos src=%i, dest=%i\n", gameState->currentZone, j);
                 if (IsValidDst(j, gameState))
                     possible = 1;
 
@@ -281,8 +304,6 @@ int IsPossibleMove(S_GameState* gameState)
 
         i++;
     }
-
-    printf("ok, possible = %i\n", possible);
 
     return possible;
 }
@@ -332,4 +353,51 @@ int IsFinish(S_GameState* gameState)
 {
     EPosition pos = (gameState->currentPlayer == EPlayer1) ? EPos_OutP1 : EPos_OutP2;
     return (gameState->zones[pos].nb_checkers == 15);
+}
+
+/* Fonction qui determine si nombre de points gagnes lors d'une victoire
+ * @param S_GameState* gameState
+ *     Etat du jeu
+ * @return int
+ *     1, 2 ou 3 selon la position des pions adverses
+ */
+int GetPoints(S_GameState* gameState)
+{
+    int points = 1;
+    int i;
+
+    if (gameState->currentPlayer == EPlayer1 && gameState->zones[EPos_OutP2].nb_checkers == 0)
+    {
+        int sum = gameState->zones[EPos_BarP2].nb_checkers;
+
+        // On regarde les dames dans le jan interieur
+        for (i=0; i<6; i++)
+        {
+            if (gameState->zones[i].player == EPlayer2)
+                sum += gameState->zones[i].nb_checkers;
+        }
+
+        if (sum == 0)
+            points = 2;
+        else
+            points = 3;
+    }
+    else if (gameState->currentPlayer == EPlayer2 && gameState->zones[EPos_OutP1].nb_checkers == 0)
+    {
+        int sum = gameState->zones[EPos_BarP1].nb_checkers;
+
+        // On regarde les dames dans le jan interieur
+        for (i=23; i>17; i--)
+        {
+            if (gameState->zones[i].player == EPlayer1)
+                sum += gameState->zones[i].nb_checkers;
+        }
+
+        if (sum == 0)
+            points = 2;
+        else
+            points = 3;
+    }
+
+    return points;
 }

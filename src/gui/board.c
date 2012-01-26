@@ -141,7 +141,12 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     if (ClickRect(event, 354, 305, 100, 30))
                     {
                         // Le joueur courant gagne la partie
-                        //TODO:
+                        if (gameState->currentPlayer == EPlayer1)
+                            gameState->scoreP1 += gameState->stake;
+                        else
+                            gameState->scoreP2 += gameState->stake;
+
+                        gameState->currentStage = FINISH_GAME_POPUP;
                     }
                     break;
             }
@@ -195,6 +200,62 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     break;
             }
             break;
+        case FINISH_GAME_POPUP:
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONDOWN:
+                    // Bouton "OK"
+                    if (ClickRect(event, 293, 305, 100, 30))
+                        gameState->selected = BUTTON1;
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    gameState->selected = NONE_BOARD;
+
+                    // Bouton "OK"
+                    if (ClickRect(event, 293, 305, 100, 30))
+                    {
+                        if ((gameState->currentPlayer == EPlayer1 && gameState->scoreP1 >= gameState->gameConfig.points) ||
+                            (gameState->currentPlayer == EPlayer2 && gameState->scoreP2 >= gameState->gameConfig.points))
+                            gameState->currentStage = FINISH_MATCH_POPUP;
+                        else
+                        {
+                            // Remise a zero du plateau
+                            InitGameState(gameState, gameState->gameConfig);
+                        }
+                    }
+                    break;
+            }
+            break;
+        case FINISH_MATCH_POPUP:
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONDOWN:
+                    // Bouton "OK"
+                    if (ClickRect(event, 293, 305, 100, 30))
+                        gameState->selected = BUTTON1;
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    gameState->selected = NONE_BOARD;
+
+                    // Bouton "OK"
+                    if (ClickRect(event, 293, 305, 100, 30))
+                    {
+                        // On ecrit dans le fichier des scores
+                        FILE* file = fopen("score.txt", "a");
+
+                        fprintf(file, "%s : %d\n", gameState->gameConfig.namePlayer1, gameState->scoreP1);
+                        fprintf(file, "%s : %d\n", gameState->gameConfig.namePlayer2, gameState->scoreP2);
+                        fprintf(file, "--------------------\n");
+
+                        fclose(file);
+
+                        // On revient au menu
+                        clicked = MENU_BOARD;
+                    }
+                    break;
+            }
+            break;
+
         case SELECT_ZONE_SRC:
             switch(event->type)
             {
@@ -251,9 +312,6 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
     gameState->die1 = 0; gameState->useDie1 = 0;
     gameState->die2 = 0; gameState->useDie2 = 0;
 
-    gameState->scoreP1 = 0;
-    gameState->scoreP2 = 0;
-
     gameState->gameConfig = gameConfig;
 
     gameState->currentStage = WAITING_FIRST_ROLL;
@@ -278,17 +336,17 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
     gameState->zones[EPos_OutP2].player = EPlayer2;
 
     // On positionne les pions de depart
-    gameState->zones[EPos_24].player = EPlayer1;
-    gameState->zones[EPos_24].nb_checkers = 2;
+    //gameState->zones[EPos_24].player = EPlayer1;
+    //gameState->zones[EPos_24].nb_checkers = 2;
 
-    gameState->zones[EPos_13].player = EPlayer1;
-    gameState->zones[EPos_13].nb_checkers = 5;
+    //gameState->zones[EPos_13].player = EPlayer1;
+    //gameState->zones[EPos_13].nb_checkers = 5;
 
-    gameState->zones[EPos_8].player = EPlayer1;
-    gameState->zones[EPos_8].nb_checkers = 3;
+    //gameState->zones[EPos_8].player = EPlayer1;
+    //gameState->zones[EPos_8].nb_checkers = 3;
 
-    gameState->zones[EPos_6].player = EPlayer1;
-    gameState->zones[EPos_6].nb_checkers = 5;
+    //gameState->zones[EPos_6].player = EPlayer1;
+    //gameState->zones[EPos_6].nb_checkers = 5;
 
     gameState->zones[EPos_1].player = EPlayer2;
     gameState->zones[EPos_1].nb_checkers = 2;
@@ -301,6 +359,18 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
 
     gameState->zones[EPos_19].player = EPlayer2;
     gameState->zones[EPos_19].nb_checkers = 5;
+
+    // temp
+    for (i=0; i<4; i++)
+    {
+        gameState->zones[i].player = EPlayer1;
+        gameState->zones[i].nb_checkers = 1;
+    }
+
+    gameState->zones[EPos_8].player = EPlayer1;
+    gameState->zones[EPos_8].nb_checkers = 1;
+
+    gameState->zones[EPos_OutP1].nb_checkers = 10;
 }
 
 /* Procedure pour afficher les pions
@@ -510,6 +580,28 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
             DisplayButton(window, CENTER_X + 60, 320, "Refuser", gameState.selected == BUTTON2);
 
             break;
+        case FINISH_GAME_POPUP:
+            DisplayDice(window, gameState);
+
+            if (gameState.currentPlayer == EPlayer1)
+                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "a gagné la manche.");
+            else
+                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "a gagné la manche.");
+
+            DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
+
+            break;
+        case FINISH_MATCH_POPUP:
+            DisplayDice(window, gameState);
+
+            if (gameState.currentPlayer == EPlayer1)
+                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "a gagné le match.");
+            else
+                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "a gagné le match.");
+
+            DisplayButton(window, CENTER_X, 320, "Menu", gameState.selected == BUTTON1);
+
+            break;
         default:
             DisplayNumbers(window, gameState);
             DisplayDice(window, gameState);
@@ -683,7 +775,7 @@ void DisplayScore(SDL_Surface* window, S_GameState gameState)
     char scorePlayer2[20] = {'\0'};
 
     sprintf(scorePlayer1, "%s : %i", gameState.gameConfig.namePlayer1, gameState.scoreP1);
-    sprintf(scorePlayer2, "%s : %i", gameState.gameConfig.namePlayer2, gameState.scoreP1);
+    sprintf(scorePlayer2, "%s : %i", gameState.gameConfig.namePlayer2, gameState.scoreP2);
 
     position.y = BOTTOM - BORDER / 2;
 
@@ -720,6 +812,10 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
     S_GameState gameState;
     InitGameState(&gameState, gameConfig);
 
+    // Initialisation du score
+    gameState.scoreP1 = 0;
+    gameState.scoreP2 = 0;
+
     SDL_Rect position;
     position.x = 0; position.y = 0;
 
@@ -728,6 +824,8 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
     DisplayBoardOverlays(window, gameState);
     DisplayScore(window, gameState);
 
+    // finish = On revient au menu
+    // quit = On quitte le programme
     int quit = 0, finish = 0;
     SDL_Event event;
 
@@ -754,6 +852,8 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
             finish = 1;
             quit = 1;
         }
+        else if (button == MENU_BOARD)
+            finish = 1;
 
         SDL_Delay(5);
     }
