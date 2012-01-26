@@ -3,6 +3,11 @@ void initGameBoard(SZone* gameBoard);
 #define TRUE 1
 #define FALSE 0
 
+typedef enum {
+	strategieHome, //si tous les pions sont dans le home
+	strategieSure, //si on veut faire un mouvement sure mais pas intelligent
+}strategie;
+
 /**
  *Permet d'initialiser le tableau de mouvement
  *@param SMove tableau[4]
