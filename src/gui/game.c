@@ -117,6 +117,8 @@ int IsValidDst(int zone, S_GameState* gameState)
                 }
             }
         }
+
+
     }
     else
     {
@@ -253,7 +255,36 @@ void DoMove(int zone, S_GameState* gameState)
  */
 int IsPossibleMove(S_GameState* gameState)
 {
-    return 1;
+    int possible = 0;
+    int i = 0;
+
+    while (!possible && i < 28)
+    {
+        if (IsValidSrc(i, gameState))
+        {
+            int currentZone = gameState->currentZone;
+            gameState->currentZone = i;
+
+            int j = 0;
+
+            while (!possible && j < 28)
+            {
+                printf("pos src=%i, dest=%i\n", gameState->currentZone, j);
+                if (IsValidDst(j, gameState))
+                    possible = 1;
+
+                j++;
+            }
+
+            gameState->currentZone = currentZone;
+        }
+
+        i++;
+    }
+
+    printf("ok, possible = %i\n", possible);
+
+    return possible;
 }
 
 /* Fonction qui determine si le joueur courant peut sortir ses dames

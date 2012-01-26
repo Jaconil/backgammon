@@ -69,13 +69,17 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     // Bouton "Lancer"
                     if (ClickRect(event, bx, 250, 100, 30))
                     {
+                        RollDice(gameState);
+
                         if (IsPossibleMove(gameState))
                         {
-                            RollDice(gameState);
                             gameState->currentStage = SELECT_ZONE_SRC;
                         }
                         else
+                        {
                             gameState->currentStage = PASS_POPUP;
+                            printf("passe\n");
+                        }
                     }
                     break;
             }
@@ -208,19 +212,6 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
 
     gameState->zones[EPos_19].player = EPlayer2;
     gameState->zones[EPos_19].nb_checkers = 5;
-
-    // temp
-    gameState->zones[EPos_6].player = EPlayer1;
-    gameState->zones[EPos_6].nb_checkers = 4;
-    gameState->zones[EPos_5].player = EPlayer1;
-    gameState->zones[EPos_5].nb_checkers = 3;
-    gameState->zones[EPos_4].player = EPlayer1;
-    gameState->zones[EPos_4].nb_checkers = 4;
-    gameState->zones[EPos_2].player = EPlayer1;
-    gameState->zones[EPos_2].nb_checkers = 2;
-    gameState->zones[EPos_3].player = EPlayer1;
-    gameState->zones[EPos_3].nb_checkers = 2;
-
 }
 
 /* Procedure pour afficher les pions
@@ -405,6 +396,10 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
             if (gameState.gameConfig.option)
                 DisplayHelp(window, gameState);
             break;
+        case PASS_POPUP:
+            DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
+            DisplayDice(window, gameState);
+            break;
         default:
             DisplayNumbers(window, gameState);
             DisplayDice(window, gameState);
@@ -446,6 +441,8 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
             positionDie2.x = CENTER_RIGHT + 10;
         }
     }
+
+    printf("useDice : %i et %i\n", gameState.useDie1, gameState.useDie2);
 
     if (gameState.useDie1 > 0)
         SDL_BlitSurface(overlays, &clip, window, &positionDie1);
