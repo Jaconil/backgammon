@@ -208,6 +208,19 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
 
     gameState->zones[EPos_19].player = EPlayer2;
     gameState->zones[EPos_19].nb_checkers = 5;
+
+    // temp
+    gameState->zones[EPos_6].player = EPlayer1;
+    gameState->zones[EPos_6].nb_checkers = 4;
+    gameState->zones[EPos_5].player = EPlayer1;
+    gameState->zones[EPos_5].nb_checkers = 3;
+    gameState->zones[EPos_4].player = EPlayer1;
+    gameState->zones[EPos_4].nb_checkers = 4;
+    gameState->zones[EPos_2].player = EPlayer1;
+    gameState->zones[EPos_2].nb_checkers = 2;
+    gameState->zones[EPos_3].player = EPlayer1;
+    gameState->zones[EPos_3].nb_checkers = 2;
+
 }
 
 /* Procedure pour afficher les pions
@@ -415,8 +428,6 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
     positionDie1.y = CENTER_Y - clip.h/2;
     positionDie2.y = CENTER_Y - clip.h/2;
 
-    printf("dice : %i %i\n", gameState.useDie1, gameState.useDie2);
-
     if (gameState.currentStage == FIRST_ROLL_POPUP)
     {
         positionDie1.x = CENTER_LEFT - clip.w/2;
@@ -428,13 +439,11 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
         {
             positionDie1.x = CENTER_LEFT - 10 - clip.w;
             positionDie2.x = CENTER_LEFT + 10;
-            printf("1- %i et %i\n", positionDie1.x, positionDie2.x);
         }
         else
         {
             positionDie1.x = CENTER_RIGHT - 10 - clip.w;
             positionDie2.x = CENTER_RIGHT + 10;
-            printf("1- %i et %i\n", positionDie1.x, positionDie2.x);
         }
     }
 
@@ -445,7 +454,6 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
     if (gameState.die1 == gameState.die2)
     {
         positionDie1.x -= (20 + clip.w);
-        printf("2- %i\n", positionDie1.x);
         if (gameState.useDie1 > 1)
             SDL_BlitSurface(overlays, &clip, window, &positionDie1);
     }
@@ -457,9 +465,7 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
     // Gestion des doubles des
     if (gameState.die1 == gameState.die2)
     {
-        printf("3- %i\n", positionDie2.x);
         positionDie2.x += 20 + clip.w;
-        printf("3b- %i\n", positionDie2.x);
         if (gameState.useDie2 > 1)
             SDL_BlitSurface(overlays, &clip, window, &positionDie2);
     }
@@ -511,6 +517,7 @@ void DisplayHelp(SDL_Surface* window, S_GameState gameState)
     SDL_Rect clip, position;
     clip.x = 400; clip.h = 15; clip.w = 30;
 
+    // Indicateur pour les fleches
     for (i=0; i<24; i++)
     {
         if (gameState.currentZone != -1 && IsValidDst(i, &gameState))
@@ -524,6 +531,30 @@ void DisplayHelp(SDL_Surface* window, S_GameState gameState)
             if (i < 6 || i > 17)
                 position.x += 2 * BORDER;
 
+            SDL_BlitSurface(overlays, &clip, window, &position);
+        }
+    }
+
+    // Indicateur pour la sortie
+    position.x = 705;
+
+    if (gameState.currentPlayer == EPlayer1)
+    {
+        printf("isv = %i\n", IsValidDst(EPos_OutP1, &gameState));
+
+        if (gameState.currentZone != -1 && IsValidDst(EPos_OutP1, &gameState))
+        {
+            position.y = 270; clip.y = 15;
+            SDL_BlitSurface(overlays, &clip, window, &position);
+        }
+    }
+    else
+    {
+        printf("isv = %i\n", IsValidDst(EPos_OutP1, &gameState));
+
+        if (gameState.currentZone != -1 && IsValidDst(EPos_OutP2, &gameState))
+        {
+            position.y = 205; clip.y = 0;
             SDL_BlitSurface(overlays, &clip, window, &position);
         }
     }
@@ -569,11 +600,11 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
             event.type == SDL_KEYUP)
         {
             SDL_BlitSurface(board_bg, NULL, window, &position);
-            printf("DEBUG 1\n");
+            //printf("DEBUG 1\n");
             DisplayCheckers(window, gameState);
-            printf("DEBUG 2\n");
+            //printf("DEBUG 2\n");
             DisplayBoardOverlays(window, gameState);
-            printf("DEBUG 3\n");
+            //printf("DEBUG 3\n");
             //DisplayScore(window, gameConfig);
         }
 
@@ -581,7 +612,7 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
 
         // Gestion des evenements
         E_BoardSelected button = EventsBoard(&event, &gameState);
-        printf("DEBUG 4\n");
+        //printf("DEBUG 4\n");
 
         if (button == QUIT_BOARD)
         {
