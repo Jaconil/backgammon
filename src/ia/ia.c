@@ -244,14 +244,16 @@ int mouvementPossible(const SGameState * const gameState, int source, int distan
 void effectuerUnDeplacementTest(SGameState * plateau, int src_point, int de) {
 	int source;
 	
-	if(src_point==EPos_BarP1) {
-		source=25;
-	} else {
-		source=src_point;
-	}
 	
-	if(source>-1){
-		plateau->zones[source].nb_checkers=plateau->zones[source].nb_checkers-1;
+	
+	if(src_point>-1){
+		plateau->zones[src_point].nb_checkers--;
+		
+		if(src_point==EPos_BarP1) {
+			source=24;
+		} else {
+			source=src_point;
+		}
 		
 		if((plateau->zones[source-de].player==EPlayer2) && (plateau->zones[source-de].nb_checkers==1)) { //cas ou on mange un pion adverse
 			plateau->zones[EPos_BarP2].nb_checkers++;
@@ -481,7 +483,8 @@ int pratiquementGagner(double deplacementRestantP1, double deplacementRestantP2)
 }
 
 void InitLibrary(char name[50]) {
-	name="ia_GUILLERMIC_BRICE_ROUSSEAU_SIMON";
+	char nom[50]="ia_Puddi";
+	memcpy(name, nom, 50*sizeof(char));
 }
 
 void StartMatch(const unsigned int target_score) {
@@ -496,12 +499,24 @@ void EndGame() {
 
 }
 
+void EndMatch() {
+
+}
+
 int DoubleStack(const SGameState * const gameState) {	
-	return pratiquementGagner(calculerCoupRestant(gameState, EPlayer1), calculerCoupRestant(gameState, EPlayer2));
+	int result;
+	
+	result=pratiquementGagner(calculerCoupRestant(gameState, EPlayer1), calculerCoupRestant(gameState, EPlayer2));
+	printf("double : %d\n", result);
+	return result;
 }
 
 int TakeDouble(const SGameState * const gameState) {	
-	return !pratiquementGagner(calculerCoupRestant(gameState, EPlayer2),calculerCoupRestant(gameState, EPlayer1));
+	int result;	
+
+	result= !pratiquementGagner(calculerCoupRestant(gameState, EPlayer2),calculerCoupRestant(gameState, EPlayer1));
+	printf("take : %d\n", result);
+	return result;
 }
 
 void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned int lastTimeError) {
@@ -512,97 +527,4 @@ void MakeDecision(const SGameState * const gameState, SMove moves[4], unsigned i
 	redirectionEnFonctionDesDes(gameState);
 
 	copierTableauSMove(Mouvements,moves);
-}
-
-
-
-/********** fonction de test ***********/
-void initGameBoard(SZone* gameBoard){
-	SZone arrow; // une flèche du plateau;
-	int i;
-	
-	arrow.player=EPlayer2;
-	arrow.nb_checkers=0;
-	for(i=0;i<28;i++){
-		gameBoard[i]=arrow;
-	}
-	// Disposition des pions du joueur2
-	arrow.player=EPlayer2;
-	arrow.nb_checkers=2;
-	gameBoard[EPos_1]=arrow;
-	
-	arrow.nb_checkers=5;
-	gameBoard[EPos_12]=arrow;
-	gameBoard[EPos_19]=arrow;
-	
-	arrow.nb_checkers=3;
-	gameBoard[EPos_17]=arrow;
-	
-	// Disposition des pions du joueur1
-	arrow.player=EPlayer1;
-	arrow.nb_checkers=2;
-	gameBoard[EPos_24]=arrow;
-	
-	arrow.nb_checkers=5;
-	gameBoard[EPos_13]=arrow;
-	gameBoard[EPos_6]=arrow;
-	
-	arrow.nb_checkers=3;
-	gameBoard[EPos_8]=arrow;
-}
-
-void effectuerUnDeplacement(SGameState * plateau, int source, int destination) {
-	if(source>=0) {
-		plateau->zones[source].nb_checkers=plateau->zones[source].nb_checkers-1;
-		plateau->zones[destination].player=EPlayer1;
-		plateau->zones[destination].nb_checkers=plateau->zones[destination].nb_checkers+1;
-	}
-}
-
-
-
-int main (int argc, char *argv[]) {
-	SGameState theGame;
-	SMove moveTab[4];
-	int i, j, k, error;
-	
-	initGameBoard(theGame.zones);
-	theGame.score=0;
-	theGame.scoreP2=0;
-	theGame.stake=1;
-	srand(time(NULL)); //initialisation de la fonction de randomisation
-	
-	
-	while (theGame.zones[EPos_OutP1].nb_checkers<15) {
-		theGame.die1=(rand()%6)+1;	// die1
-		theGame.die2=(rand()%6)+1;	// die2
-		/*while (theGame.die2==theGame.die1) {
-			theGame.die2=(rand()%6)+1;	// die2
-		}*/
-	
-		for(j=0;j<4;j++) {
-			moveTab[j].src_point=-1;
-			moveTab[j].dest_point=-1;
-		}
-		printf("de1 : %i de2 : %i\n", theGame.die1, theGame.die2);	
-		MakeDecision(&theGame, moveTab, error);
-		for(i=0;i<4;i++) {
-			printf("deplacement %i : %i --> %i\n", i, moveTab[i].src_point, moveTab[i].dest_point);	
-			effectuerUnDeplacement(&theGame, moveTab[i].src_point, moveTab[i].dest_point);
-		}
-	
-	
-	
-		for(k=0;k<28;k++){
-			if (theGame.zones[k].nb_checkers!=0){
-				printf("%i - joueur %i : %i\n", k, theGame.zones[k].player, theGame.zones[k].nb_checkers);
-			} else {
-				printf("%i - none\n", k);
-			}
-		}
-	}
-	/*//affichage
-	printf("%i\n",lastChecker());
-	*/
-	return 0;
 }

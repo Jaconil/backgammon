@@ -244,9 +244,14 @@ void StartMatch(const unsigned int target_score);
 void StartGame();
 
 /**
- *Fin du match
+ *Fin d'une manche
  */
 void EndGame();
+
+/**
+ *Fin du match
+ */
+void EndMatch();
 
 /**
  *Double la mise
