@@ -68,6 +68,7 @@ int nbPionEnJeu(const SGameState * const gameState) {
 	return toReturn;	
 }
 
+
 int nbBlotEnJeu(const SGameState * const gameState) {
 	int toReturn;
 	int i;
@@ -186,6 +187,7 @@ int mouvementNormalPossible(const SGameState * const gameState, int source, int 
 	
 	return toReturn;
 }
+
 
 int mouvementPossible(const SGameState * const gameState, int source, int distance) {
 	int toReturn;
