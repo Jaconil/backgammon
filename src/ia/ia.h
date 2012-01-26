@@ -1,5 +1,3 @@
-void initGameBoard(SZone* gameBoard);
-
 #define TRUE 1
 #define FALSE 0
 
@@ -41,6 +39,15 @@ void copierTableauSMove(SMove source[4], SMove destination[4]);
  *	position du dernier pion du joueur 1
  */
 int lastChecker(const SGameState * const gameState);
+
+/**
+ *Calcule la distance à parcourir pour rentrer tous les pions au minimum dans le home
+ *@param const SGameState * const gameState
+ *	l'état du jeu courant
+ *@return int
+ *	distance restante pour avoir tous ses pions dans le home
+ */
+int distanceEnDehorsDuHome(const SGameState * const gameState);
 
 /**
  *Calcul le nombre de pions qui ne sont pas sortis du jeu. Les joueurs prisonniers sont comptés comme des pions en jeu

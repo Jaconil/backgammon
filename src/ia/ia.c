@@ -55,6 +55,19 @@ int lastChecker(const SGameState * const gameState) {
 	return toReturn;
 }
 
+int distanceEnDehorsDuHome(const SGameState * const gameState) {
+	int toReturn;
+	int i;
+	
+	toReturn=0;
+	rafraichitFlecheJouable(gameState);
+	
+	for(i=6;i<=24;i++) {
+		toReturn=toReturn+(flecheJouable[i]*(i-5));
+	}
+	return toReturn;
+}
+
 int nbPionEnJeu(const SGameState * const gameState) {
 	int toReturn;
 	int i;
@@ -122,16 +135,16 @@ int nbMove(int a, int b){
 
 void calculerStrategie(const SGameState * const gameState, int lastTimeError) {
 	if(lastTimeError==1) {
-		strategie=0; // strategie la plus simple et la plus sûr
+		strategie=strategieSure; // strategie la plus simple et la plus sûr
 	} else {
 		rafraichitFlecheJouable(gameState);
 		if(lastChecker(gameState)<= EPos_6) {
-			strategie=1; // on peu sortir un pion
+			strategie=strategieHome; // on peu sortir un pion
 		} else {
 			if(calculerCoupRestant(gameState, EPlayer1)>calculerCoupRestant(gameState, EPlayer2)) { // cas ou on est en retard dans le jeu
-				strategie=2;
+				strategie=strategieAttaque;
 			} else {
-				strategie=3;
+				strategie=strategieEnAvance;
 			}
 		}
 	}
@@ -148,23 +161,52 @@ int meilleurPlateau(SGameState* plateauATester, const SGameState * const gameSta
 	if(calculerCoupRestant(&plateauEnCours, EPlayer1)>calculerCoupRestant(plateauATester, EPlayer1)) {
 		toReturn=TRUE;
 	} else {
-		if(strategie==0) { // assurer en prenant le premier déplacement trouvé La comparaison avec un autre coup est donc faux
+		if(strategie==strategieSure) { // assurer en prenant le premier déplacement trouvé La comparaison avec un autre coup est donc faux
 				toReturn=FALSE;
 		} else {
-			if(strategie==1) { // privilégier la sortie d'un pion
+			if(strategie==strategieHome) { // privilégier la sortie d'un pion
 				if(nbPionEnJeu(plateauATester)<nbPionEnJeu(&plateauEnCours)){ // s'il y a moins de pions en jeu, c'est qu'il en a sortie plus.
 					toReturn=TRUE;
 				}
-			} else {
-				if(strategie==2) { // privilégier l'attaque des blots
-					if(plateauATester->zones[EPos_BarP2].nb_checkers>plateauEnCours.zones[EPos_BarP2].nb_checkers) {
+			} else { // attaque ou défense
+				if(distanceEnDehorsDuHome(plateauATester)<=distanceEnDehorsDuHome(&plateauEnCours)) {
+					if(distanceEnDehorsDuHome(plateauATester)==distanceEnDehorsDuHome(&plateauEnCours)) {
+						if(strategie==strategieAttaque) { // privilégier l'attaque des blots
+							if(plateauATester->zones[EPos_BarP2].nb_checkers>=plateauEnCours.zones[EPos_BarP2].nb_checkers) {
+								if(plateauATester->zones[EPos_BarP2].nb_checkers==plateauEnCours.zones[EPos_BarP2].nb_checkers){ // si le nombre de pion manger est identique, on regarde le nombre de blot créé.
+									if(nbBlotEnJeu(plateauATester)<nbBlotEnJeu(&plateauEnCours)){
+										toReturn=TRUE;
+									} else {
+										toReturn=FALSE;
+									}
+								} else { //il y a plus de pion de manger donc le plateau est meilleur
+									toReturn=TRUE;
+								}
+							} else { // il y a moins de prisonnier
+								toReturn=FALSE;
+							}
+						} else { // privilégier la défense en ne créant pas de blot
+							if(nbBlotEnJeu(plateauATester)<=nbBlotEnJeu(&plateauEnCours)) {
+								if(nbBlotEnJeu(plateauATester)<=nbBlotEnJeu(&plateauEnCours)) { //le nombre de blot est identique, on départage par l'attaque
+									if(plateauATester->zones[EPos_BarP2].nb_checkers>plateauEnCours.zones[EPos_BarP2].nb_checkers) { // le nombre de pions mangés est plus grand
+										toReturn=TRUE;							
+									} else {
+										toReturn=FALSE;
+									}
+								} else {
+									toReturn=TRUE;
+								}
+							} else {
+								toReturn=FALSE;
+							}
+						}
+					} else {
 						toReturn=TRUE;
 					}
-				} else { // privilégier la défense en ne créant pas de blot
-					if(nbBlotEnJeu(plateauATester)<nbBlotEnJeu(&plateauEnCours)) {
-						toReturn=TRUE;
-					}
+				} else {
+					toReturn=FALSE;
 				}
+				
 			}
 		}
 	}
@@ -244,8 +286,6 @@ int mouvementPossible(const SGameState * const gameState, int source, int distan
 void effectuerUnDeplacementTest(SGameState * plateau, int src_point, int de) {
 	int source;
 	
-	
-	
 	if(src_point>-1){
 		plateau->zones[src_point].nb_checkers--;
 		
@@ -272,13 +312,15 @@ void effectuerUnDeplacementTest(SGameState * plateau, int src_point, int de) {
 void effectuerLesMouvements(SGameState * plateauEnCours, const SGameState * const gameState){
 	int i;
 	int j;
+	int src;
+	
 	for(j=EPos_1;j<=EPos_BarP2;j++) {
 		plateauEnCours->zones[j].player=gameState->zones[j].player;
 		plateauEnCours->zones[j].nb_checkers=gameState->zones[j].nb_checkers;
 	}
-	
 	for(i=0;i<4;i++) {
-		if(Mouvements[i].src_point>-1) {
+		src=Mouvements[i].src_point;
+		if(src>-1) {
 			plateauEnCours->zones[Mouvements[i].src_point].nb_checkers--;
 			if((plateauEnCours->zones[Mouvements[i].dest_point].player==EPlayer2) && (plateauEnCours->zones[Mouvements[i].dest_point].nb_checkers==1)) {// cas ou on mange un pion adverse
 				plateauEnCours->zones[EPos_BarP2].nb_checkers++;
