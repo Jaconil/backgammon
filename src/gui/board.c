@@ -72,14 +72,9 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                         RollDice(gameState);
 
                         if (IsPossibleMove(gameState))
-                        {
                             gameState->currentStage = SELECT_ZONE_SRC;
-                        }
                         else
-                        {
                             gameState->currentStage = PASS_POPUP;
-                            printf("passe\n");
-                        }
                     }
                     break;
             }
@@ -102,6 +97,33 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                             gameState->currentStage = SELECT_ZONE_SRC;
                         else
                             gameState->currentStage = PASS_POPUP;
+                    }
+                    break;
+            }
+            break;
+        case PASS_POPUP:
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONDOWN:
+                    // Bouton "OK"
+                    if (ClickRect(event, 293, 305, 100, 30))
+                        gameState->selected = BUTTON1;
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    gameState->selected = NONE_BOARD;
+
+                    // Bouton "OK"
+                    if (ClickRect(event, 293, 305, 100, 30))
+                    {
+                        if (gameState->currentPlayer == EPlayer1)
+                            gameState->currentPlayer = EPlayer2;
+                        else
+                            gameState->currentPlayer = EPlayer1;
+
+                        if (gameState->cubeOwner == gameState->currentPlayer || gameState->stake == 1)
+                            gameState->currentStage = WAITING_ROLL_DBL;
+                        else
+                            gameState->currentStage = WAITING_ROLL;
                     }
                     break;
             }
@@ -397,8 +419,15 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
                 DisplayHelp(window, gameState);
             break;
         case PASS_POPUP:
-            DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
             DisplayDice(window, gameState);
+
+            if (gameState.currentPlayer == EPlayer1)
+                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "passe son tour.");
+            else
+                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "passe son tour.");
+
+            DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
+
             break;
         default:
             DisplayNumbers(window, gameState);
