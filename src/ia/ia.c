@@ -374,29 +374,29 @@ void decision4Move(const SGameState * const gameState) {
 	mouvementTroisiemeTrouve=FALSE;
 	
 	source1=EPos_BarP1;
-	while(source1>=EPos_1) {
-		if(source1!=EPos_OutP1 && mouvementPossible(gameState,source1,gameState->die1)) {
+	while(source1>=EPos_1) { // on va passer en revu tous les premiers mouvements
+		if(source1!=EPos_OutP1 && mouvementPossible(gameState,source1,gameState->die1)) { // si c'est un 1er déplacement possible
 			plateau1= *gameState;
 			mouvementPremierTrouve=TRUE;
 			effectuerUnDeplacementTest(&plateau1, source1, gameState->die1);
 			source2=EPos_BarP1;
-			while(source2>=EPos_1) {
-				if(source2!=EPos_OutP1 && mouvementPossible(&plateau1,source2,gameState->die1)) {
+			while(source2>=EPos_1) {// on va passer en revu tous les deuxiemes mouvements
+				if(source2!=EPos_OutP1 && mouvementPossible(&plateau1,source2,gameState->die1)) {// si c'est un 2eme déplacement possible
 					plateau2= plateau1;
 					mouvementDeuxiemeTrouve=TRUE;
 					effectuerUnDeplacementTest(&plateau2, source2, gameState->die1);
 					source3=EPos_BarP1;
-					while(source3>=EPos_1) {
-						if(source2!=EPos_OutP1 && mouvementPossible(&plateau2,source3,gameState->die1)) {
+					while(source3>=EPos_1) {//on va passer en revu tous les troixiemes mouvements
+						if(source2!=EPos_OutP1 && mouvementPossible(&plateau2,source3,gameState->die1)) { // si c'est un 3eme déplacement possible
 							plateau3= plateau2;
 							mouvementTroisiemeTrouve=TRUE;
 							effectuerUnDeplacementTest(&plateau3, source3, gameState->die1);
 							source4=EPos_BarP1;
-							while(source4>=EPos_1) {
-								if(source4!=EPos_OutP1 && mouvementPossible(&plateau3,source4,gameState->die1)) {
+							while(source4>=EPos_1) {//on va passer en revu tous les quatriemes mouvements
+								if(source4!=EPos_OutP1 && mouvementPossible(&plateau3,source4,gameState->die1)) {// si c'est un 4eme déplacement possible
 									plateau4=plateau3;
 									effectuerUnDeplacementTest(&plateau4, source4, gameState->die1);
-									if(!mouvementCompletTrouve || meilleurPlateau(&plateau4, gameState)) {
+									if(!mouvementCompletTrouve || meilleurPlateau(&plateau4, gameState)) { // Si c'est le premier plateau à 4 déplacements, ou si c'est un meilleur plateau
 										enregistrerUnDeplacement(0, source1, gameState->die1);
 										enregistrerUnDeplacement(1, source2, gameState->die1);
 										enregistrerUnDeplacement(2, source3, gameState->die1);
@@ -406,7 +406,7 @@ void decision4Move(const SGameState * const gameState) {
 								}
 								source4=source4-1;
 							}
-							if(!mouvementCompletTrouve && meilleurPlateau(&plateau3, gameState)) {
+							if(!mouvementCompletTrouve && meilleurPlateau(&plateau3, gameState)) { // s'il n'y a pas de quatrième mouvement possible
 								enregistrerUnDeplacement(0, source1, gameState->die1);
 								enregistrerUnDeplacement(1, source2, gameState->die1);
 								enregistrerUnDeplacement(2, source3, gameState->die1);
@@ -414,14 +414,14 @@ void decision4Move(const SGameState * const gameState) {
 						}
 						source3=source3-1;
 					}
-					if(!mouvementTroisiemeTrouve && meilleurPlateau(&plateau2, gameState)) {
+					if(!mouvementTroisiemeTrouve && meilleurPlateau(&plateau2, gameState)) {// s'il n'y a pas de troisieme mouvement possible
 						enregistrerUnDeplacement(0, source1, gameState->die1);
 						enregistrerUnDeplacement(1, source2, gameState->die1);
 					}
 				}
 				source2=source2-1;
 			}
-			if(!mouvementDeuxiemeTrouve && meilleurPlateau(&plateau1, gameState)) {
+			if(!mouvementDeuxiemeTrouve && meilleurPlateau(&plateau1, gameState)) {// s'il n'y a pas de deuxieme mouvement possible
 				enregistrerUnDeplacement(0, source1, gameState->die1);
 			}
 		}
@@ -474,7 +474,7 @@ int pratiquementGagner(double deplacementRestantP1, double deplacementRestantP2)
 }
 
 void InitLibrary(char name[50]) {
-
+	name="ia_GUILLERMIC_BRICE_ROUSSEAU_SIMON";
 }
 
 void StartMatch(const unsigned int target_score) {
@@ -569,9 +569,9 @@ int main (int argc, char *argv[]) {
 	while (theGame.zones[EPos_OutP1].nb_checkers<15) {
 		theGame.die1=(rand()%6)+1;	// die1
 		theGame.die2=(rand()%6)+1;	// die2
-		while (theGame.die2==theGame.die1) {
+		/*while (theGame.die2==theGame.die1) {
 			theGame.die2=(rand()%6)+1;	// die2
-		}
+		}*/
 	
 		for(j=0;j<4;j++) {
 			moveTab[j].src_point=-1;
