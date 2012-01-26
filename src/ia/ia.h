@@ -5,10 +5,10 @@ void initGameBoard(SZone* gameBoard);
 
 typedef enum {
 	strategieHome, //si tous les pions sont dans le home
-	strategieSure, //si on veut faire un mouvement sure mais pas intelligent
+	strategieSure, //si on veut faire un mouvement sure mais pas intelligent et aléatoire
 	strategieAttaque, //si on veut que l'IA soit agressive
 	strategieEnAvance, //si on est en avance dans le jeu
-}strategie;
+}sStrategie;
 
 /**
  *Permet d'initialiser le tableau de mouvement
