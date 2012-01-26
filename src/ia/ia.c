@@ -192,11 +192,18 @@ int mouvementPossible(const SGameState * const gameState, int source, int distan
 	int toReturn;
 	int nbrPionBar;
 	int dernierPion;
+	int laSource;
 	
 	nbrPionBar=gameState->zones[EPos_BarP1].nb_checkers;
 	rafraichitFlecheJouable(gameState);
+	
+	if(source==EPos_BarP1) {
+		laSource=24; // source corrigé pour le tableau FlechesJouables
+	} else {
+		laSource=source;
+	}
 
-	if ((distance==gameState->die1 || distance==gameState->die2) && flecheJouable[source]) {
+	if ((distance==gameState->die1 || distance==gameState->die2) && flecheJouable[laSource]) {
 		if(nbrPionBar>0){//si un pion est prisonnier
 			if (source==EPos_BarP1) {//si la source est bien un prisonnier
 				if (possibleCase(gameState,(EPos_24-distance)+1)) {//si la case dest est libre
@@ -210,21 +217,21 @@ int mouvementPossible(const SGameState * const gameState, int source, int distan
 		} else {
 			dernierPion=lastChecker(gameState);
 			if (dernierPion<=EPos_6) { //si tous les pions sont dans le home
-				if (distance==source+1) {//cas du nombre exact pour sortir
+				if (distance==laSource+1) {//cas du nombre exact pour sortir
 					toReturn=TRUE;
 				} else {
-					if (distance>source+1) {//si c'est le dernier pion
+					if (distance>laSource+1) {//si c'est le dernier pion
 						if (source==dernierPion) {//si le jet est supérieur à la distance restante
 							toReturn=TRUE;
 						} else {//deplacement normal
 							toReturn=FALSE;
 						}
 					} else {//deplacement normal
-						toReturn=mouvementNormalPossible(gameState,source,distance);
+						toReturn=mouvementNormalPossible(gameState,laSource,distance);
 					}
 				}
 			} else {//deplacement normal
-				toReturn=mouvementNormalPossible(gameState,source,distance);
+				toReturn=mouvementNormalPossible(gameState,laSource,distance);
 			}
 		}
 	} else {
