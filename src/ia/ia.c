@@ -8,7 +8,7 @@
 
 SMove Mouvements[4];
 int flecheJouable[25];//avec case barre 24
-int strategie;
+sStrategie strategie;
 
 void initTableauSMoveLocal(SMove tableau[4]) {
 	int i;
@@ -33,7 +33,7 @@ void rafraichitFlecheJouable(const SGameState * const gameState) {
 }
 
 void copierTableauSMove(SMove source[4], SMove destination[4]) {
-	memcpy(destination,source,sizeof(source)*4);
+	memcpy(destination,source,sizeof(SMove)*4);
 }
 
 int lastChecker(const SGameState * const gameState) {
@@ -411,7 +411,6 @@ void decision4Move(const SGameState * const gameState) {
 	SGameState  plateau4;
 	
 	int mouvementCompletTrouve;
-	int mouvementPremierTrouve;
 	int mouvementDeuxiemeTrouve;
 	int mouvementTroisiemeTrouve;
 	
@@ -428,7 +427,6 @@ void decision4Move(const SGameState * const gameState) {
 	while(source1>=EPos_1) { // on va passer en revu tous les premiers mouvements
 		if(source1!=EPos_OutP1 && mouvementPossible(gameState,source1,gameState->die1)) { // si c'est un 1er déplacement possible
 			plateau1= *gameState;
-			mouvementPremierTrouve=TRUE;
 			effectuerUnDeplacementTest(&plateau1, source1, gameState->die1);
 			source2=EPos_BarP1;
 			while(source2>=EPos_1) {// on va passer en revu tous les deuxiemes mouvements
@@ -525,7 +523,7 @@ int pratiquementGagner(double deplacementRestantP1, double deplacementRestantP2)
 }
 
 void InitLibrary(char name[50]) {
-	char nom[50]="ia_Puddi";
+	char nom[50]="ia_Guillermic_B_ROUSSEAU_S";
 	memcpy(name, nom, 50*sizeof(char));
 }
 
@@ -534,7 +532,7 @@ void StartMatch(const unsigned int target_score) {
 }
 
 void StartGame() {
-	strategie=0;
+	strategie=strategieSure;
 }
 
 void EndGame() {
@@ -549,7 +547,6 @@ int DoubleStack(const SGameState * const gameState) {
 	int result;
 	
 	result=pratiquementGagner(calculerCoupRestant(gameState, EPlayer1), calculerCoupRestant(gameState, EPlayer2));
-	printf("double : %d\n", result);
 	return result;
 }
 
@@ -557,7 +554,6 @@ int TakeDouble(const SGameState * const gameState) {
 	int result;	
 
 	result= !pratiquementGagner(calculerCoupRestant(gameState, EPlayer2),calculerCoupRestant(gameState, EPlayer1));
-	printf("take : %d\n", result);
 	return result;
 }
 
