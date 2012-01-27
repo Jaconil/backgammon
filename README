@@ -1,3 +1,35 @@
-Programme de Backgammon
+Programme de Backgammon - Projet de C
+     Polytech Nantes 2011-2012
 
--- README à compléter
+Par :
+- GUIHAL Maxime (Interface)
+- GUILLERMIC Brice (IA)
+- ROUSSEAU Simon (IA)
+
+== Compilation ==
+
+Dans une console, saisir :
+- "make all"   pour compiler l'interface et l'IA
+- "make gui"   pour compiler l'interface
+- "make ia"    pour compiler l'IA
+- "make clean" pour effacer l'interface et l'IA
+
+== Interface ==
+
+Quelques problèmes d'arbitrage subsistent.
+
+== Explications pour le code de l'interface ==
+
+Le déroulement d'une partie est décomposé en différentes phases.
+Le programme parcourt ces phases à la manière d'un automate.
+
+Rôle des fichiers :
+- cste.h       : Définition des constantes
+- structures.h : Définition des structures et énumérations utilisées
+- main.c       : Entrée du programme
+- library.c    : Gestion de l'importation des fonctions de l'IA
+- menu.c       : Affichage et gestion du menu
+- board.c      : Affichage et gestion du plateau
+- gui.c        : Fonctions liées à l'affichage
+- game.c       : Fonctions liées à la vérification des mouvements et à l'arbitrage
+- events.c     : Gestion des évènements du menu, du plateau, et des IA

@@ -78,8 +78,6 @@ int LoadAPI(char* path, S_AIFunctions* aiFunctions, int index)
     if ((aiFunctions[index].AI_TakeDouble = (pfTakeDouble)DLSYM(aiFunctions[index].ai, "TakeDouble")) == NULL) return 0;
     if ((aiFunctions[index].AI_MakeDecision = (pfMakeDecision)DLSYM(aiFunctions[index].ai, "MakeDecision")) == NULL) return 0;
 
-
-
     return 1;
 }
 
@@ -101,7 +99,7 @@ E_GameMode ParseArgs(int argc, char* argv[], S_AIFunctions* aiFunctions)
         returnValue = HUMAN_HUMAN;
     else if (argc == 2)
     {
-        if (LoadAPI(argv[1], aiFunctions, 0))
+        if (LoadAPI(argv[1], aiFunctions, 1))
             returnValue = HUMAN_AI;
     }
     else if (argc == 3)

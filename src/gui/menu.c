@@ -10,134 +10,7 @@
 #include "gui.h"
 #include "menu.h"
 #include "board.h"
-
-/* Procedure de saisie du nom d'un joueur
- * @param char** name
- *      Nom du joueur
- * @param SDL_keysym keysym
- *      Touche pressee
- */
-void TextInput(char* name, SDL_keysym key)
-{
-    int length = strlen(name);
-
-    // Gestion de l'effacement
-    if (length > 0 && key.sym == SDLK_BACKSPACE)
-        name[length - 1] = '\0';
-
-    // Gestion des touches
-    else if (length < 13)
-    {
-        int ascii = -1;
-
-        if ((key.sym >= SDLK_a && key.sym <= SDLK_z) ||
-            (key.sym >= SDLK_0 && key.sym <= SDLK_9) ||
-            key.sym == SDLK_SPACE)
-        {
-            ascii = key.sym;
-
-            // Gestion de la majuscule
-            if ((key.mod & KMOD_SHIFT) && (key.sym >= SDLK_a && key.sym <= SDLK_z))
-                ascii -= 32;
-        }
-        else if (key.sym >= SDLK_KP0 && key.sym <= SDLK_KP9)
-            ascii = key.sym - 208;
-
-        if (ascii != -1)
-        {
-            name[length] = ascii;
-            name[length + 1] = '\0';
-        }
-    }
-}
-
-/* Procedure de gestion des evenements du menu
- * @param SDL_Event* event
- *     Evenements de la fenetre
- * @param S_GameConfig gameConfig
- *     Structure de configuration du jeu
- * @param E_MenuSelected selected
- *     Selection du menu
- * @return E_MenuSelected
- *     Eventuel bouton clique
- */
-E_MenuSelected EventsMenu(SDL_Event* event, S_GameConfig* gameConfig, E_MenuSelected* selected)
-{
-    E_MenuSelected clicked = NONE;
-
-    SDL_WaitEvent(event);
-    switch(event->type)
-    {
-        case SDL_QUIT:
-            clicked = QUIT;
-            break;
-        case SDL_MOUSEBUTTONDOWN:
-            if (ClickRect(event, 450, 446, 150, 45))
-                    *selected = QUIT;
-
-            if (ClickRect(event, 158, 446, 150, 45))
-                    *selected = START;
-
-            break;
-        case SDL_MOUSEBUTTONUP:
-            if (event->button.button == SDL_BUTTON_LEFT)
-            {
-                // Boutons
-                if (ClickRect(event, 450, 446, 150, 45))
-                    clicked = QUIT;
-
-                if (ClickRect(event, 158, 446, 150, 45))
-                {
-                    if (strlen(gameConfig->namePlayer1) > 0 && strlen(gameConfig->namePlayer2) > 0)
-                        clicked = START;
-                }
-
-                // Sï¿½lection des zones de texte
-                if (ClickRect(event, 379, 126, 300, 40))
-                    *selected = PLAYER1;
-                else if (ClickRect(event, 379, 186, 300, 40))
-                    *selected = PLAYER2;
-                else
-                    *selected = NONE;
-
-                // Clic sur les boutons
-                if (ClickRect(event, 379, 246, 40, 40))
-                    gameConfig->player1Color = BLACK;
-
-                if (ClickRect(event, 568, 246, 40, 40))
-                    gameConfig->player1Color = WHITE;
-
-                if (ClickRect(event, 41, 306, 40, 40))
-                    gameConfig->option = 1;
-
-                if (ClickRect(event, 420, 306, 40, 40))
-                    gameConfig->option = 0;
-
-                // Clic sur les fleches
-                if (ClickRect(event, 444, 366, 30, 40))
-                {
-                    if (gameConfig->points > MIN_POINTS)
-                        gameConfig->points -= 2;
-                }
-
-                if (ClickRect(event, 584, 366, 30, 40))
-                {
-                    if (gameConfig->points < MAX_POINTS)
-                        gameConfig->points += 2;
-                }
-            }
-            break;
-        case SDL_KEYUP:
-            if (*selected == PLAYER1)
-                TextInput(gameConfig->namePlayer1, event->key.keysym);
-            else if (*selected == PLAYER2)
-                TextInput(gameConfig->namePlayer2, event->key.keysym);
-
-            break;
-    }
-
-    return clicked;
-}
+#include "events.h"
 
 /* Procedure d'affichage des textes
  * @param SDL_Surface* window
@@ -185,8 +58,8 @@ void DisplayText(SDL_Surface* window, TTF_Font* font, E_GameMode gameMode, E_Men
         txtPlayer1 = TTF_RenderText_Blended(font, "IA 1 :", black);
         txtPlayer2 = TTF_RenderText_Blended(font, "IA 2 :", black);
         txtColor = TTF_RenderText_Blended(font, "Couleur de l'IA 1 :", black);
-        txtOption1 = TTF_RenderText_Blended(font, "Match instantané", black);
-        txtOption2 = TTF_RenderText_Blended(font, "Match tour par tour", black);
+        txtOption1 = TTF_RenderText_Blended(font, "Match lent", black);
+        txtOption2 = TTF_RenderText_Blended(font, "Match rapide", black);
     }
 
     position.x = 338 - txtPlayer1->w; position.y = 146 - txtPlayer1->h/2;
@@ -274,7 +147,7 @@ void DisplayOverlays(SDL_Surface* window, TTF_Font* font, E_MenuSelected selecte
     clip.x = 340; clip.w = 30; position.y = 366;
     if (gameConfig.points > MIN_POINTS)
     {
-        // Flï¿½che gauche
+        // Fleche gauche
         position.x = 444;
         SDL_BlitSurface(overlays, &clip, window, &position);
     }
@@ -282,7 +155,7 @@ void DisplayOverlays(SDL_Surface* window, TTF_Font* font, E_MenuSelected selecte
     clip.x = 370;
     if (gameConfig.points < MAX_POINTS)
     {
-        // Flï¿½che droite
+        // Fleche droite
         position.x = 584;
         SDL_BlitSurface(overlays, &clip, window, &position);
     }
@@ -306,6 +179,7 @@ void DisplayOverlays(SDL_Surface* window, TTF_Font* font, E_MenuSelected selecte
         SDL_FreeSurface(txtNamePlayer2);
     }
 
+    // Points
     char points[5];
     sprintf(points, "%i", gameConfig.points);
 
@@ -323,6 +197,14 @@ void DisplayOverlays(SDL_Surface* window, TTF_Font* font, E_MenuSelected selecte
  */
 void InitPlayersName(S_GameConfig* gameConfig)
 {
+    // Initialisation des variables
+    int i;
+    for (i=0; i<14; i++)
+    {
+        gameConfig->namePlayer1[i] = '\0';
+        gameConfig->namePlayer2[i] = '\0';
+    }
+
     if (gameConfig->mode == HUMAN_HUMAN)
     {
         strcpy(gameConfig->namePlayer1, "Humain 1");
@@ -333,13 +215,10 @@ void InitPlayersName(S_GameConfig* gameConfig)
         strcpy(gameConfig->namePlayer1, "Humain");
 
         char aiName[50];
-        gameConfig->aiFunctions[0].AI_InitLibrary(aiName);
+        gameConfig->aiFunctions[1].AI_InitLibrary(aiName);
 
         if (strlen(aiName) > 0)
-        {
             strncpy(gameConfig->namePlayer2, aiName, 12);
-            gameConfig->namePlayer2[13] = '\0';
-        }
         else
             strcpy(gameConfig->namePlayer2, "IA\0");
     }
@@ -349,10 +228,7 @@ void InitPlayersName(S_GameConfig* gameConfig)
         gameConfig->aiFunctions[0].AI_InitLibrary(aiName1);
 
         if (strlen(aiName1) > 0)
-        {
             strncpy(gameConfig->namePlayer1, aiName1, 12);
-            gameConfig->namePlayer1[13] = '\0';
-        }
         else
             strcpy(gameConfig->namePlayer1, "IA 1\0");
 
@@ -388,6 +264,7 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
     E_MenuSelected selected = NONE;
     S_GameConfig gameConfig;
 
+    // Initialisation de la configuration du match
     gameConfig.player1Color = BLACK;
     gameConfig.option = 0;
     gameConfig.points = 5;
@@ -396,6 +273,7 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
 
     InitPlayersName(&gameConfig);
 
+    // Affichage
     SDL_BlitSurface(menu_bg, NULL, window, &position);
     DisplayText(window, font, gameMode, selected);
     DisplayOverlays(window, font, selected, gameConfig);
@@ -406,9 +284,7 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
     while(!finish)
     {
         // Affichage
-        if (event.type == SDL_MOUSEBUTTONUP ||
-            event.type == SDL_MOUSEBUTTONDOWN ||
-            event.type == SDL_KEYUP)
+        if (event.type == SDL_MOUSEBUTTONUP || event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_KEYUP)
         {
             SDL_BlitSurface(menu_bg, NULL, window, &position);
             DisplayText(window, font, gameMode, selected);

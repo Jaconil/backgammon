@@ -10,308 +10,7 @@
 #include "gui.h"
 #include "board.h"
 #include "game.h"
-
-/* Fonction de gestion des evenements du plateau
- * @param SDL_Event* event
- *     Evenements de la fenetre
- * @param S_GameState* gameState
- *     Etat du jeu
- * @return E_BoardSelected
- *     Eventuel bouton clique
- */
-E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
-{
-    E_BoardSelected clicked = NONE_BOARD;
-
-    SDL_WaitEvent(event);
-    int zone = -1;
-    int bx;
-
-    if (event->type == SDL_QUIT)
-        clicked = QUIT_BOARD;
-
-    switch (gameState->currentStage)
-    {
-        case WAITING_FIRST_ROLL:
-            switch(event->type)
-            {
-                case SDL_MOUSEBUTTONDOWN:
-                    // Bouton "Lancer"
-                    if (ClickRect(event, 293, 230, 100, 30))
-                        gameState->selected = BUTTON1;
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    gameState->selected = NONE_BOARD;
-
-                    // Bouton "Lancer"
-                    if (ClickRect(event, 293, 230, 100, 30))
-                        RollDice(gameState);
-                    break;
-            }
-            break;
-        case WAITING_ROLL_DBL:
-            bx = (gameState->currentPlayer == EPlayer1) ? 122 : 464;
-
-            switch(event->type)
-            {
-                case SDL_MOUSEBUTTONDOWN:
-                    // Bouton "Doubler"
-                    if (ClickRect(event, bx, 210, 100, 30))
-                        gameState->selected = BUTTON1;
-
-                    // Bouton "Lancer"
-                    if (ClickRect(event, bx, 250, 100, 30))
-                        gameState->selected = BUTTON2;
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    gameState->selected = NONE_BOARD;
-
-                    // Bouton "Doubler"
-                    if (ClickRect(event, bx, 210, 100, 30))
-                        gameState->currentStage = DOUBLE_POPUP;
-
-                    // Bouton "Lancer"
-                    if (ClickRect(event, bx, 250, 100, 30))
-                    {
-                        RollDice(gameState);
-
-                        if (IsPossibleMove(gameState))
-                            gameState->currentStage = SELECT_ZONE_SRC;
-                        else
-                            gameState->currentStage = PASS_POPUP;
-                    }
-                    break;
-            }
-            break;
-        case WAITING_ROLL:
-            bx = (gameState->currentPlayer == EPlayer1) ? 122 : 464;
-
-            switch(event->type)
-            {
-                case SDL_MOUSEBUTTONDOWN:
-                    // Bouton "Lancer"
-                    if (ClickRect(event, bx, 230, 100, 30))
-                        gameState->selected = BUTTON1;
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    gameState->selected = NONE_BOARD;
-
-                    // Bouton "Lancer"
-                    if (ClickRect(event, bx, 230, 100, 30))
-                    {
-                        RollDice(gameState);
-
-                        if (IsPossibleMove(gameState))
-                            gameState->currentStage = SELECT_ZONE_SRC;
-                        else
-                            gameState->currentStage = PASS_POPUP;
-                    }
-                    break;
-            }
-            break;
-        case DOUBLE_POPUP:
-            switch(event->type)
-            {
-                case SDL_MOUSEBUTTONDOWN:
-                    // Bouton "Accepter"
-                    if (ClickRect(event, 234, 305, 100, 30))
-                        gameState->selected = BUTTON1;
-
-                    // Bouton "Refuser"
-                    if (ClickRect(event, 354, 305, 100, 30))
-                        gameState->selected = BUTTON2;
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    gameState->selected = NONE_BOARD;
-
-                    // Bouton "Accepter"
-                    if (ClickRect(event, 234, 305, 100, 30))
-                    {
-                        gameState->stake *= 2;
-
-                        if (gameState->currentPlayer == EPlayer1)
-                            gameState->cubeOwner = EPlayer2;
-                        else
-                            gameState->cubeOwner = EPlayer1;
-
-                        gameState->currentStage = WAITING_ROLL;
-                    }
-
-                    // Bouton "Refuser"
-                    if (ClickRect(event, 354, 305, 100, 30))
-                    {
-                        // Le joueur courant gagne la partie
-                        if (gameState->currentPlayer == EPlayer1)
-                            gameState->scoreP1 += gameState->stake;
-                        else
-                            gameState->scoreP2 += gameState->stake;
-
-                        gameState->currentStage = FINISH_GAME_POPUP;
-                    }
-                    break;
-            }
-            break;
-        case FIRST_ROLL_POPUP:
-            switch(event->type)
-            {
-                case SDL_MOUSEBUTTONDOWN:
-                    // Bouton "OK"
-                    if (ClickRect(event, 293, 305, 100, 30))
-                        gameState->selected = BUTTON1;
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    gameState->selected = NONE_BOARD;
-
-                    // Bouton "OK"
-                    if (ClickRect(event, 293, 305, 100, 30))
-                    {
-                        if (IsPossibleMove(gameState))
-                            gameState->currentStage = SELECT_ZONE_SRC;
-                        else
-                            gameState->currentStage = PASS_POPUP;
-                    }
-                    break;
-            }
-            break;
-        case PASS_POPUP:
-            switch(event->type)
-            {
-                case SDL_MOUSEBUTTONDOWN:
-                    // Bouton "OK"
-                    if (ClickRect(event, 293, 305, 100, 30))
-                        gameState->selected = BUTTON1;
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    gameState->selected = NONE_BOARD;
-
-                    // Bouton "OK"
-                    if (ClickRect(event, 293, 305, 100, 30))
-                    {
-                        if (gameState->currentPlayer == EPlayer1)
-                            gameState->currentPlayer = EPlayer2;
-                        else
-                            gameState->currentPlayer = EPlayer1;
-
-                        if (gameState->cubeOwner == gameState->currentPlayer || gameState->stake == 1)
-                            gameState->currentStage = WAITING_ROLL_DBL;
-                        else
-                            gameState->currentStage = WAITING_ROLL;
-                    }
-                    break;
-            }
-            break;
-        case FINISH_GAME_POPUP:
-            switch(event->type)
-            {
-                case SDL_MOUSEBUTTONDOWN:
-                    // Bouton "OK"
-                    if (ClickRect(event, 293, 305, 100, 30))
-                        gameState->selected = BUTTON1;
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    gameState->selected = NONE_BOARD;
-
-                    // Bouton "OK"
-                    if (ClickRect(event, 293, 305, 100, 30))
-                    {
-                        // On desalloue les IA
-                        if (gameState->gameConfig.mode != HUMAN_HUMAN)
-                            gameState->gameConfig.aiFunctions[0].AI_EndGame();
-
-                        if (gameState->gameConfig.mode == AI_AI)
-                            gameState->gameConfig.aiFunctions[1].AI_EndGame();
-
-                        if ((gameState->currentPlayer == EPlayer1 && gameState->scoreP1 >= gameState->gameConfig.points) ||
-                            (gameState->currentPlayer == EPlayer2 && gameState->scoreP2 >= gameState->gameConfig.points))
-                            gameState->currentStage = FINISH_MATCH_POPUP;
-                        else
-                        {
-                            // On reinitialise les IA
-                            if (gameState->gameConfig.mode != HUMAN_HUMAN)
-                                gameState->gameConfig.aiFunctions[0].AI_StartGame();
-
-                            if (gameState->gameConfig.mode == AI_AI)
-                                gameState->gameConfig.aiFunctions[1].AI_StartGame();
-
-                            // Remise a zero du plateau
-                            InitGameState(gameState, gameState->gameConfig);
-                        }
-                    }
-                    break;
-            }
-            break;
-        case FINISH_MATCH_POPUP:
-            switch(event->type)
-            {
-                case SDL_MOUSEBUTTONDOWN:
-                    // Bouton "OK"
-                    if (ClickRect(event, 293, 305, 100, 30))
-                        gameState->selected = BUTTON1;
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    gameState->selected = NONE_BOARD;
-
-                    // Bouton "OK"
-                    if (ClickRect(event, 293, 305, 100, 30))
-                    {
-                        // On ecrit dans le fichier des scores
-                        FILE* file = fopen("score.txt", "a");
-
-                        fprintf(file, "%s : %d\n", gameState->gameConfig.namePlayer1, gameState->scoreP1);
-                        fprintf(file, "%s : %d\n", gameState->gameConfig.namePlayer2, gameState->scoreP2);
-                        fprintf(file, "--------------------\n");
-
-                        fclose(file);
-
-                        // On revient au menu
-                        clicked = MENU_BOARD;
-                    }
-                    break;
-            }
-            break;
-
-        case SELECT_ZONE_SRC:
-            switch(event->type)
-            {
-                case SDL_MOUSEBUTTONUP:
-                    // Selection d'une zone source
-                    zone = ClickZone(event);
-                    if (IsValidSrc(zone, gameState))
-                    {
-                        gameState->currentZone = zone;
-                        gameState->currentStage = SELECT_ZONE_DST;
-                    }
-                    break;
-            }
-            break;
-        case SELECT_ZONE_DST:
-            switch(event->type)
-            {
-                case SDL_MOUSEBUTTONUP:
-                    // Selection d'une zone source
-                    zone = ClickZone(event);
-
-                    if (IsValidDst(zone, gameState))
-                        DoMove(zone, gameState);
-                    else if (IsValidSrc(zone, gameState))
-                        gameState->currentZone = zone;
-                    else
-                    {
-                        gameState->currentZone = -1;
-                        gameState->currentStage = SELECT_ZONE_SRC;
-                    }
-                    break;
-            }
-            break;
-        default:
-            break;
-    }
-
-
-
-
-    return clicked;
-}
+#include "events.h"
 
 /* Procedure d'initialisation de l'etat du jeu
  * @param S_GameState* gameState
@@ -332,6 +31,9 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
     gameState->currentZone = -1;
 
     gameState->selected = NONE_BOARD;
+    gameState->refresh = 0;
+    gameState->aiErrors[0] = 0;
+    gameState->aiErrors[1] = 0;
 
     // On n'initialise pas le proprietaire du videau puisqu'il manque un etat "aucun joueur"
     // -> Verifier si la mise est superieure a 1 pour regarder le proprietaire
@@ -375,7 +77,7 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
     gameState->zones[EPos_19].nb_checkers = 5;
 }
 
-/* Procedure pour afficher les pions
+/* Procedure pour afficher les dames
  * @param SDL_Surface* window
  *     Surface de la fenetre
  * @param S_GameState gameState
@@ -399,13 +101,14 @@ void DisplayCheckers(SDL_Surface* window, S_GameState gameState)
             if (gameState.gameConfig.player1Color == WHITE)
                 clip.x = CHECKER_W - clip.x;
 
-            // Calcul de la position x des pions
+            // Calcul de l'abscisse des dames
             position.x = BORDER + (ZONE_W - CHECKER_W)/2;
             position.x += ZONE_W * ((i < 12)? 11-i : i-12); // decalage des fleches
 
             if (i > 17 || i < 6)
                 position.x += 2 * BORDER;
 
+            // Gestion de l'empilement des dames
             double step = 40.0;
 
             if (gameState.zones[i].nb_checkers > 4)
@@ -536,62 +239,84 @@ void DisplayBoardOverlays(SDL_Surface* window, S_GameState gameState)
             DisplayButton(window, CENTER_X, CENTER_Y, "Lancer", gameState.selected == BUTTON1);
             break;
         case WAITING_ROLL_DBL:
-            DisplayButton(window, (gameState.currentPlayer == EPlayer1) ? CENTER_LEFT : CENTER_RIGHT,
-                                   CENTER_Y - 20, "Doubler", gameState.selected == BUTTON1);
-            DisplayButton(window, (gameState.currentPlayer == EPlayer1) ? CENTER_LEFT : CENTER_RIGHT,
-                                   CENTER_Y + 20, "Lancer", gameState.selected == BUTTON2);
+            // On affiche les boutons que si le joueur est humain
+            if (IsHuman(&gameState, 1))
+            {
+                DisplayButton(window, (gameState.currentPlayer == EPlayer1) ? CENTER_LEFT : CENTER_RIGHT,
+                                        CENTER_Y - 20, "Doubler", gameState.selected == BUTTON1);
+                DisplayButton(window, (gameState.currentPlayer == EPlayer1) ? CENTER_LEFT : CENTER_RIGHT,
+                                        CENTER_Y + 20, "Lancer", gameState.selected == BUTTON2);
+            }
             break;
         case WAITING_ROLL:
-            DisplayButton(window, (gameState.currentPlayer == EPlayer1) ? CENTER_LEFT : CENTER_RIGHT,
-                                   CENTER_Y, "Lancer", gameState.selected == BUTTON1);
+            // On affiche les boutons que si le joueur est humain
+            if (IsHuman(&gameState, 1))
+            {
+                DisplayButton(window, (gameState.currentPlayer == EPlayer1) ? CENTER_LEFT : CENTER_RIGHT,
+                                        CENTER_Y, "Lancer", gameState.selected == BUTTON1);
+            }
             break;
         case FIRST_ROLL_POPUP:
-            if (gameState.currentPlayer == EPlayer1)
-                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "commence.");
-            else
-                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "commence.");
-
-            DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
             DisplayDice(window, gameState);
+
+            // On affiche la popup que si un humain joue
+            if (gameState.gameConfig.mode != AI_AI)
+            {
+                if (gameState.currentPlayer == EPlayer1)
+                    DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "commence.");
+                else
+                    DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "commence.");
+
+                DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
+            }
             break;
         case SELECT_ZONE_DST:
             DisplayNumbers(window, gameState);
             DisplayDice(window, gameState);
 
-            if (gameState.gameConfig.option)
+            if (gameState.gameConfig.option && gameState.gameConfig.mode != AI_AI)
                 DisplayHelp(window, gameState);
             break;
         case PASS_POPUP:
             DisplayDice(window, gameState);
 
-            if (gameState.currentPlayer == EPlayer1)
-                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "passe son tour.");
-            else
-                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "passe son tour.");
+            // On affiche la popup que si le joueur est humain
+            if (IsHuman(&gameState, 1))
+            {
+                if (gameState.currentPlayer == EPlayer1)
+                    DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "passe son tour.");
+                else
+                    DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "passe son tour.");
 
-            DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
-
+                DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
+            }
             break;
         case DOUBLE_POPUP:
-            if (gameState.currentPlayer == EPlayer1)
-                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "veut doubler.");
-            else
-                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "veut doubler.");
+            // On affiche la popup que si le joueur adverse est humain
+            if (IsHuman(&gameState, 0))
+            {
+                if (gameState.currentPlayer == EPlayer1)
+                    DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "veut doubler.");
+                else
+                    DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "veut doubler.");
 
-            DisplayButton(window, CENTER_X - 60, 320, "Accepter", gameState.selected == BUTTON1);
-            DisplayButton(window, CENTER_X + 60, 320, "Refuser", gameState.selected == BUTTON2);
-
+                DisplayButton(window, CENTER_X - 60, 320, "Accepter", gameState.selected == BUTTON1);
+                DisplayButton(window, CENTER_X + 60, 320, "Refuser", gameState.selected == BUTTON2);
+            }
             break;
         case FINISH_GAME_POPUP:
             DisplayDice(window, gameState);
 
-            if (gameState.currentPlayer == EPlayer1)
-                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "a gagné la manche.");
-            else
-                DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "a gagné la manche.");
+            // On affiche la popup que si un joueur est humain
+            if (gameState.gameConfig.mode != AI_AI)
+            {
+                if (gameState.currentPlayer == EPlayer1)
+                    DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer1, "a gagné la manche.");
+                else
+                    DisplayPopup(window, 3, "Le joueur", gameState.gameConfig.namePlayer2, "a gagné la manche.");
 
-            DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
-
+                DisplayButton(window, CENTER_X, 320, "OK", gameState.selected == BUTTON1);
+            }
             break;
         case FINISH_MATCH_POPUP:
             DisplayDice(window, gameState);
@@ -627,11 +352,14 @@ void DisplayDice(SDL_Surface* window, S_GameState gameState)
     positionDie1.y = CENTER_Y - clip.h/2;
     positionDie2.y = CENTER_Y - clip.h/2;
 
+    // Affichage de chaque cote du plateau
     if (gameState.currentStage == FIRST_ROLL_POPUP)
     {
         positionDie1.x = CENTER_LEFT - clip.w/2;
         positionDie2.x = CENTER_RIGHT - clip.w/2;
     }
+
+    // Affichage d'un seul cote
     else
     {
         if (gameState.currentPlayer == EPlayer1)
@@ -821,14 +549,14 @@ int DisplayBoard(SDL_Surface* window, S_GameConfig gameConfig)
     // On initialise les IA
     if (gameConfig.mode != HUMAN_HUMAN)
     {
-        gameConfig.aiFunctions[0].AI_StartMatch((unsigned int)(gameConfig.points));
-        gameConfig.aiFunctions[0].AI_StartGame();
+        gameConfig.aiFunctions[1].AI_StartMatch((unsigned int)(gameConfig.points));
+        gameConfig.aiFunctions[1].AI_StartGame();
     }
 
     if (gameConfig.mode == AI_AI)
     {
-        gameConfig.aiFunctions[1].AI_StartMatch((unsigned int)(gameConfig.points));
-        gameConfig.aiFunctions[1].AI_StartGame();
+        gameConfig.aiFunctions[0].AI_StartMatch((unsigned int)(gameConfig.points));
+        gameConfig.aiFunctions[0].AI_StartGame();
     }
 
     // finish = On revient au menu
@@ -836,16 +564,21 @@ int DisplayBoard(SDL_Surface* window, S_GameConfig gameConfig)
     int quit = 0, finish = 0;
     SDL_Event event;
 
+    int oldTime = SDL_GetTicks();
+    int time;
+
     while(!finish)
     {
         // Affichage
         if (event.type == SDL_MOUSEBUTTONUP ||
-            event.type == SDL_MOUSEBUTTONDOWN)
+            event.type == SDL_MOUSEBUTTONDOWN ||
+            gameState.refresh)
         {
             SDL_BlitSurface(board_bg, NULL, window, &position);
             DisplayCheckers(window, gameState);
             DisplayBoardOverlays(window, gameState);
             DisplayScore(window, gameState);
+            gameState.refresh = 0;
         }
 
         SDL_Flip(window);
@@ -860,23 +593,37 @@ int DisplayBoard(SDL_Surface* window, S_GameConfig gameConfig)
 
             // On desalloue les IA
             if (gameConfig.mode != HUMAN_HUMAN)
-                gameConfig.aiFunctions[0].AI_EndGame();
+                gameConfig.aiFunctions[1].AI_EndGame();
 
             if (gameConfig.mode == AI_AI)
-                gameConfig.aiFunctions[1].AI_EndGame();
+                gameConfig.aiFunctions[0].AI_EndGame();
         }
         else if (button == MENU_BOARD)
             finish = 1;
+
+        // Gestion de la vitesse de jeu entre IA
+        if (gameConfig.mode == AI_AI && gameState.currentStage == SELECT_ZONE_SRC && gameConfig.option)
+        {
+            time = SDL_GetTicks();
+
+            if ((time - oldTime) > 1000)
+            {
+                AI_EventsBoard(&gameState);
+                oldTime = time;
+            }
+        }
+        else
+            AI_EventsBoard(&gameState);
 
         SDL_Delay(5);
     }
 
     // On desalloue les IA
     if (gameConfig.mode != HUMAN_HUMAN)
-        gameConfig.aiFunctions[0].AI_EndMatch();
+        gameConfig.aiFunctions[1].AI_EndMatch();
 
     if (gameConfig.mode == AI_AI)
-        gameConfig.aiFunctions[1].AI_EndMatch();
+        gameConfig.aiFunctions[0].AI_EndMatch();
 
     SDL_FreeSurface(board_bg);
 

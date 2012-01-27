@@ -115,8 +115,6 @@ int IsValidDst(int zone, S_GameState* gameState)
                 }
             }
         }
-
-
     }
     else
     {
@@ -138,11 +136,11 @@ int IsValidDst(int zone, S_GameState* gameState)
                 if ((src + (int)gameState->die1 > dest && gameState->useDie1 > 0) ||
                     (src + (int)gameState->die2 > dest && gameState->useDie2 > 0))
                 {
-                    // On regarde s'il y a des dames sur les fleches superieures
+                    // On regarde s'il y a des dames sur les fleches inferieures
                     int sum = 0;
                     int i;
 
-                    for (i=src+1; i<24; i++)
+                    for (i=18; i<src; i++)
                     {
                         if (gameState->zones[i].nb_checkers > 0 && gameState->zones[i].player == EPlayer2)
                             sum += gameState->zones[i].nb_checkers;
@@ -232,8 +230,7 @@ void DoMove(int zone, S_GameState* gameState)
         // On regarde la position des pions adversaires pour connaitre les points gagnes
         int points = GetPoints(gameState);
 
-        // On augmente le score
-        //  et on le reajuste pour ne pas depasser la limite
+        // On augmente le score et on le reajuste pour ne pas depasser la limite
         if (gameState->currentPlayer == EPlayer1)
         {
             gameState->scoreP1 += points * gameState->stake;
@@ -280,6 +277,9 @@ int IsPossibleMove(S_GameState* gameState)
     int possible = 0;
     int i = 0;
 
+    // On parcourt toutes les fleches sources possibles
+    // Idem pour les fleches de destination
+    // On s'arrete des qu'un mouvement possible est trouve
     while (!possible && i < 28)
     {
         if (IsValidSrc(i, gameState))
@@ -436,26 +436,115 @@ void CreateAIGameState(SGameState* AI_gameState, S_GameState* gameState)
     AI_gameState->die2 = gameState->die2;
     AI_gameState->stake = gameState->stake;
 
+    // Recopie des fleches
     if (gameState->currentPlayer == EPlayer1)
     {
         AI_gameState->score = gameState->scoreP1;
-        AI_gameState->scoreP2 = gameState->scoreP2
+        AI_gameState->scoreP2 = gameState->scoreP2;
 
         for (i=0; i<28; i++)
-            AI_gameState->zones[i] = gameState->zones[i];
+        {
+            AI_gameState->zones[i].nb_checkers = gameState->zones[i].nb_checkers;
+            AI_gameState->zones[i].player = gameState->zones[i].player;
+        }
     }
     else
     {
         AI_gameState->score = gameState->scoreP2;
-        AI_gameState->scoreP2 = gameState->scoreP1
+        AI_gameState->scoreP2 = gameState->scoreP1;
 
         // On inverse les fleches
         for (i=0; i<24; i++)
-            AI_gameState->zones[i] = gameState->zones[24-i];
+        {
+            AI_gameState->zones[i].nb_checkers = gameState->zones[23-i].nb_checkers;
+
+            if (gameState->zones[23-i].player == EPlayer1)
+                AI_gameState->zones[i].player = EPlayer2;
+            else
+                AI_gameState->zones[i].player = EPlayer1;
+        }
 
         AI_gameState->zones[EPos_OutP1] = gameState->zones[EPos_OutP2];
         AI_gameState->zones[EPos_OutP2] = gameState->zones[EPos_OutP1];
         AI_gameState->zones[EPos_BarP1] = gameState->zones[EPos_BarP2];
         AI_gameState->zones[EPos_BarP2] = gameState->zones[EPos_BarP1];
     }
+}
+
+/* Fonction qui convertit les coordonnees IA -> Plateau
+ * @param S_GameState* gameState
+ *     Etat du jeu
+ * @param EPosition zone
+ *     Position a convertir
+ * @return int
+ *     Position convertie
+ */
+int ConvertAIZone(S_GameState* gameState, EPosition zone)
+{
+    if (gameState->currentPlayer == EPlayer2)
+    {
+        if (zone == EPos_BarP1)
+            return EPos_BarP2;
+        else if (zone == EPos_BarP2)
+            return EPos_BarP1;
+        else if (zone == EPos_OutP1)
+            return EPos_OutP2;
+        else if (zone == EPos_OutP2)
+            return EPos_OutP1;
+        else
+            return 23 - zone;
+    }
+    else
+        return zone;
+}
+
+/* Fonction qui determine si les mouvements de l'IA sont corrects
+ * @param S_GameState gameState
+ *     Etat du jeu en copie
+ * @param SMove* moves[4]
+ *     Tableau des mouvements de l'IA
+ */
+int IsValidAIMoves(S_GameState gameState, SMove moves[4])
+{
+    int correct = 1;
+    int i;
+
+    // Pour chaque mouvement de l'IA
+    for (i=0; i<4; i++)
+    {
+        if (IsPossibleMove(&gameState))
+        {
+            if (moves[i].src_point == EPos_nopos || moves[i].dest_point == EPos_nopos)
+                correct = 0;
+            else
+            {
+                int src = ConvertAIZone(&gameState, moves[i].src_point);
+                int dest = ConvertAIZone(&gameState, moves[i].dest_point);
+
+                // On verifie la fleche source
+                if (!IsValidSrc(src, &gameState))
+                    correct = 0;
+                else
+                {
+                    gameState.currentZone = src;
+
+                    // On verifie la fleche de destination
+                    if (!IsValidDst(dest, &gameState))
+                        correct = 0;
+                }
+
+                // On effectue le mouvement dans la copie du plateau
+                if (correct)
+                    DoMove(dest, &gameState);
+            }
+        }
+        else
+        {
+            // Mouvements invalides
+            if (moves[i].src_point != EPos_nopos || moves[i].dest_point != EPos_nopos)
+                correct = 0;
+        }
+    }
+
+    return correct;
 }

@@ -43,6 +43,7 @@ int InitWindow(SDL_Surface** window, SDL_Surface** icon)
 
     SDL_WM_SetCaption("Backgammon", NULL);
 
+    // Chargement de SDL_TTF
     if (TTF_Init() == -1)
     {
         fprintf(stderr, "Erreur d'ouverture de TTF_Init : %s\n", TTF_GetError());
@@ -63,6 +64,46 @@ void FreeWindow(SDL_Surface* icon)
 
     TTF_Quit();
     SDL_Quit();
+}
+
+/* Procedure de saisie du nom d'un joueur
+ * @param char** name
+ *      Nom du joueur
+ * @param SDL_keysym keysym
+ *      Touche pressee
+ */
+void TextInput(char* name, SDL_keysym key)
+{
+    int length = strlen(name);
+
+    // Gestion de l'effacement
+    if (length > 0 && key.sym == SDLK_BACKSPACE)
+        name[length - 1] = '\0';
+
+    // Gestion des touches a-z et 0-9
+    else if (length < 13)
+    {
+        int ascii = -1;
+
+        if ((key.sym >= SDLK_a && key.sym <= SDLK_z) ||
+            (key.sym >= SDLK_0 && key.sym <= SDLK_9) ||
+            key.sym == SDLK_SPACE)
+        {
+            ascii = key.sym;
+
+            // Gestion de la majuscule
+            if ((key.mod & KMOD_SHIFT) && (key.sym >= SDLK_a && key.sym <= SDLK_z))
+                ascii -= 32;
+        }
+        else if (key.sym >= SDLK_KP0 && key.sym <= SDLK_KP9)
+            ascii = key.sym - 208;
+
+        if (ascii != -1)
+        {
+            name[length] = ascii;
+            name[length + 1] = '\0';
+        }
+    }
 }
 
 /* Fonction qui indique si l'utilisateur a clique sur un rectangle
@@ -147,8 +188,9 @@ int ClickZone(SDL_Event* event)
 void DisplayButton(SDL_Surface* window, int x, int y, char* label, int select)
 {
     SDL_Surface *overlays = IMG_Load(DESIGN_PATH "overlays.png");
-    SDL_Rect clip, position;
     TTF_Font *font = TTF_OpenFont(DESIGN_PATH "board.ttf", 20);
+
+    SDL_Rect clip, position;
     SDL_Color black = {0,0,0}, selectColor = {200, 200, 100};
     SDL_Surface *txtButton = NULL;
 
@@ -175,8 +217,9 @@ void DisplayButton(SDL_Surface* window, int x, int y, char* label, int select)
 void DisplayPopup(SDL_Surface* window, int nb, ...)
 {
     SDL_Surface *overlays = IMG_Load(DESIGN_PATH "overlays.png");
-    SDL_Rect clip, position;
     TTF_Font *font = TTF_OpenFont(DESIGN_PATH "board.ttf", 20);
+
+    SDL_Rect clip, position;
     SDL_Color black = {0,0,0};
     SDL_Surface *txtPopup = NULL;
     int i;
@@ -185,12 +228,14 @@ void DisplayPopup(SDL_Surface* window, int nb, ...)
     va_list lines;
     va_start(lines, nb);
 
+    // Affichage du fond
     clip.x = 180; clip.y = 80; clip.w = 250; clip.h = 200;
     position.x = CENTER_X - clip.w/2; position.y = CENTER_Y - clip.h/2;
     SDL_BlitSurface(overlays, &clip, window, &position);
 
     position.y = 180;
 
+    // Affichage du texte
     for (i=0; i<nb; i++)
     {
         line = (char*)va_arg(lines, char*);

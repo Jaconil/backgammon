@@ -1,10 +1,10 @@
 #ifndef _STRUCTURES
 #define _STRUCTURES
 
-// Definition des structures et des enumerations
-#include "backgammon.h"
+// Definition des structures et des enumerations de l'interface
+#include "../backgammon.h"
 
-// Style de jeu
+// Styles de jeu
 typedef enum
 {
     HUMAN_HUMAN,
@@ -27,7 +27,7 @@ typedef struct
     pfMakeDecision AI_MakeDecision;
 } S_AIFunctions;
 
-// Partie du menu qui est sélectionée
+// Partie du menu qui est sélectionee
 typedef enum
 {
     PLAYER1,
@@ -59,16 +59,16 @@ typedef struct
 // Enumeration des etapes du jeu
 typedef enum
 {
-    WAITING_FIRST_ROLL,
-    FIRST_ROLL_POPUP,
-    SELECT_ZONE_SRC,
-    SELECT_ZONE_DST,
-    WAITING_ROLL_DBL,
-    DOUBLE_POPUP,
-    WAITING_ROLL,
-    PASS_POPUP,
-    FINISH_GAME_POPUP,
-    FINISH_MATCH_POPUP
+    WAITING_FIRST_ROLL,     // Attente du premier lancer
+    FIRST_ROLL_POPUP,       // Message indiquant le premier joueur
+    SELECT_ZONE_SRC,        // Selection d'une fleche de depart
+    SELECT_ZONE_DST,        // Selection d'une flehe d'arrivee
+    WAITING_ROLL_DBL,       // Attente d'un lancer ou doubla
+    DOUBLE_POPUP,           // Message informant un double
+    WAITING_ROLL,           // Attente d'un lancer
+    PASS_POPUP,             // Message indiquant que le joueur passe son tour
+    FINISH_GAME_POPUP,      // Message indiquant la fin d'une partie
+    FINISH_MATCH_POPUP      // Message indiquant la fin d'un match
 } E_Stage;
 
 // Texte du plateau selectionne
@@ -103,11 +103,23 @@ typedef struct
 
     S_GameConfig gameConfig;
 
+    // Etape courante du jeu
     E_Stage currentStage;
+
+    // Joueur courant
     EPlayer currentPlayer;
+
+    // Fleche selectionnee
     unsigned int currentZone;
 
     E_BoardSelected selected;
+
+    // Indique qu'on doit raffraichir l'affichage sans clic
+    int refresh;
+
+    // Erreurs des IA
+    unsigned int aiErrors[2];
+
 } S_GameState;
 
 #endif
