@@ -408,7 +408,8 @@ int GetPoints(S_GameState* gameState)
  * @return int
  *     0 si IA, 1 si Humain
  */
-/*int IsHuman(S_GameState* gameState)
+int IsHuman(S_GameState* gameState)
 {
-    if (gameState->currentPlayer == EPlayer1 && gameState->gameConfig.
-}*/
+    return ((gameState->currentPlayer == EPlayer1 && gameState->gameConfig.mode != AI_AI) ||
+            (gameState->currentPlayer == EPlayer2 && gameState->gameConfig.mode == HUMAN_HUMAN));
+}

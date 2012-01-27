@@ -1,7 +1,7 @@
 #ifndef _STRUCTURES
 #define _STRUCTURES
 
-// Définition des structures et des enumerations
+// Definition des structures et des enumerations
 #include "backgammon.h"
 
 // Style de jeu
