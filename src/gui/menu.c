@@ -320,24 +320,20 @@ void DisplayOverlays(SDL_Surface* window, TTF_Font* font, E_MenuSelected selecte
 /* Procedure d'initialisation des noms des joueurs
  * @param S_GameConfig gameConfig
  *     Structure de configuration du jeu
- * @param E_GameMode gameMode
- *     Mode de jeu du programme en cours
- * @param S_AIFunctions* aiFunctions
- *     Structure de stockage des fonctions des bibliotheques
  */
-void InitPlayersName(S_GameConfig* gameConfig, E_GameMode gameMode, S_AIFunctions* aiFunctions)
+void InitPlayersName(S_GameConfig* gameConfig)
 {
-    if (gameMode == HUMAN_HUMAN)
+    if (gameConfig->mode == HUMAN_HUMAN)
     {
         strcpy(gameConfig->namePlayer1, "Joueur 1");
         strcpy(gameConfig->namePlayer2, "Joueur 2");
     }
-    else if (gameMode == HUMAN_AI)
+    else if (gameConfig->mode == HUMAN_AI)
     {
         strcpy(gameConfig->namePlayer1, "Joueur");
 
         char aiName[50];
-        aiFunctions[0].AI_InitLibrary(aiName);
+        gameConfig->aiFunctions[0].AI_InitLibrary(aiName);
 
         if (strlen(aiName) > 0)
         {
@@ -350,7 +346,7 @@ void InitPlayersName(S_GameConfig* gameConfig, E_GameMode gameMode, S_AIFunction
     else
     {
         char aiName1[50];
-        aiFunctions[0].AI_InitLibrary(aiName1);
+        gameConfig->aiFunctions[0].AI_InitLibrary(aiName1);
 
         if (strlen(aiName1) > 0)
         {
@@ -361,7 +357,7 @@ void InitPlayersName(S_GameConfig* gameConfig, E_GameMode gameMode, S_AIFunction
             strcpy(gameConfig->namePlayer1, "IA 1\0");
 
         char aiName2[50];
-        aiFunctions[1].AI_InitLibrary(aiName2);
+        gameConfig->aiFunctions[1].AI_InitLibrary(aiName2);
 
         if (strlen(aiName2) > 0)
         {
@@ -395,7 +391,10 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
     gameConfig.player1Color = BLACK;
     gameConfig.option = 0;
     gameConfig.points = 5;
-    InitPlayersName(&gameConfig, gameMode, aiFunctions);
+    gameConfig.mode = gameMode;
+    gameConfig.aiFunctions = aiFunctions;
+
+    InitPlayersName(&gameConfig);
 
     SDL_BlitSurface(menu_bg, NULL, window, &position);
     DisplayText(window, font, gameMode, selected);
@@ -422,7 +421,7 @@ void DisplayMenu(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
         E_MenuSelected button = EventsMenu(&event, &gameConfig, &selected);
 
         if (button == START)
-            finish = DisplayBoard(window, gameMode, aiFunctions, gameConfig);
+            finish = DisplayBoard(window, gameConfig);
         else if (button == QUIT)
             finish = 1;
 

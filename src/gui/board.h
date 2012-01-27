@@ -10,7 +10,7 @@ void DisplayNumbers(SDL_Surface* window, S_GameState gameState);
 void DisplayHelp(SDL_Surface* window, S_GameState gameState);
 void DisplayScore(SDL_Surface* window, S_GameState gameState);
 
-int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunctions, S_GameConfig gameConfig);
+int DisplayBoard(SDL_Surface* window, S_GameConfig gameConfig);
 
 E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState);
 

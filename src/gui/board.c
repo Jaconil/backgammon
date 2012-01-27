@@ -784,16 +784,12 @@ void DisplayScore(SDL_Surface* window, S_GameState gameState)
 /* Fonction de gestion de l'affichage du plateau de jeu
  * @param SDL_Surface* window
  *     Surface de la fenetre
- * @param E_GameMode gameMode
- *     Mode de jeu du programme en cours
- * @param S_AIFunctions* aiFunctions
- *     Structure de stockage des fonctions des bibliotheques
  * @param S_GameConfig gameConfig
  *     Structure de configuration du jeu
  * @return int
  *     1 si on doit quitter le programme, 0 sinon
  */
-int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunctions, S_GameConfig gameConfig)
+int DisplayBoard(SDL_Surface* window, S_GameConfig gameConfig)
 {
     SDL_Surface *board_bg = IMG_Load(DESIGN_PATH "board.png");
 
@@ -821,8 +817,7 @@ int DisplayBoard(SDL_Surface* window, E_GameMode gameMode, S_AIFunctions* aiFunc
     {
         // Affichage
         if (event.type == SDL_MOUSEBUTTONUP ||
-            event.type == SDL_MOUSEBUTTONDOWN ||
-            event.type == SDL_KEYUP)
+            event.type == SDL_MOUSEBUTTONDOWN)
         {
             SDL_BlitSurface(board_bg, NULL, window, &position);
             DisplayCheckers(window, gameState);

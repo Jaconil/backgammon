@@ -401,3 +401,14 @@ int GetPoints(S_GameState* gameState)
 
     return points;
 }
+
+/* Fonction qui determine si le joueur courant est humain
+ * @param S_GameState* gameState
+ *     Etat du jeu
+ * @return int
+ *     0 si IA, 1 si Humain
+ */
+/*int IsHuman(S_GameState* gameState)
+{
+    if (gameState->currentPlayer == EPlayer1 && gameState->gameConfig.
+}*/

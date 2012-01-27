@@ -12,4 +12,6 @@ int GetPoints(S_GameState* gameState);
 
 void DoMove(int zone, S_GameState* gameState);
 
+int IsHuman(S_GameState* gameState);
+
 #endif

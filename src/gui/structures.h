@@ -52,6 +52,8 @@ typedef struct
     E_PlayerColor player1Color;
     int option;
     int points;
+    E_GameMode mode;
+    S_AIFunctions* aiFunctions;
 } S_GameConfig;
 
 // Enumeration des etapes du jeu
