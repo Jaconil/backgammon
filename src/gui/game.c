@@ -89,8 +89,6 @@ int IsValidDst(int zone, S_GameState* gameState)
         if (gameState->currentZone == EPos_BarP1)
             src = 24;
 
-        printf("src = %i, dest = %i\n", src, dest);
-
         if (gameState->currentZone == EPos_BarP1 || gameState->zones[EPos_BarP1].nb_checkers == 0)
         {
             if ((src - gameState->die1 == dest && gameState->useDie1 > 0) ||

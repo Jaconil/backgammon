@@ -725,8 +725,6 @@ void DisplayHelp(SDL_Surface* window, S_GameState gameState)
 
     if (gameState.currentPlayer == EPlayer1)
     {
-        printf("isv = %i\n", IsValidDst(EPos_OutP1, &gameState));
-
         if (gameState.currentZone != -1 && IsValidDst(EPos_OutP1, &gameState))
         {
             position.y = 270; clip.y = 15;
@@ -735,8 +733,6 @@ void DisplayHelp(SDL_Surface* window, S_GameState gameState)
     }
     else
     {
-        printf("isv = %i\n", IsValidDst(EPos_OutP1, &gameState));
-
         if (gameState.currentZone != -1 && IsValidDst(EPos_OutP2, &gameState))
         {
             position.y = 205; clip.y = 0;
@@ -808,6 +804,13 @@ int DisplayBoard(SDL_Surface* window, S_GameConfig gameConfig)
     DisplayBoardOverlays(window, gameState);
     DisplayScore(window, gameState);
 
+    // On initialise les IA
+    if (gameConfig.mode != HUMAN_HUMAN)
+        gameConfig.aiFunctions[0].AI_StartMatch((unsigned int)(gameConfig.points));
+
+    if (gameConfig.mode == AI_AI)
+        gameConfig.aiFunctions[1].AI_StartMatch((unsigned int)(gameConfig.points));
+
     // finish = On revient au menu
     // quit = On quitte le programme
     int quit = 0, finish = 0;
@@ -840,6 +843,13 @@ int DisplayBoard(SDL_Surface* window, S_GameConfig gameConfig)
 
         SDL_Delay(5);
     }
+
+    // On desalloue les IA
+    if (gameConfig.mode != HUMAN_HUMAN)
+        gameConfig.aiFunctions[0].AI_EndMatch();
+
+    if (gameConfig.mode == AI_AI)
+        gameConfig.aiFunctions[1].AI_EndMatch();
 
     SDL_FreeSurface(board_bg);
 

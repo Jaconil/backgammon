@@ -325,12 +325,12 @@ void InitPlayersName(S_GameConfig* gameConfig)
 {
     if (gameConfig->mode == HUMAN_HUMAN)
     {
-        strcpy(gameConfig->namePlayer1, "Joueur 1");
-        strcpy(gameConfig->namePlayer2, "Joueur 2");
+        strcpy(gameConfig->namePlayer1, "Humain 1");
+        strcpy(gameConfig->namePlayer2, "Humain 2");
     }
     else if (gameConfig->mode == HUMAN_AI)
     {
-        strcpy(gameConfig->namePlayer1, "Joueur");
+        strcpy(gameConfig->namePlayer1, "Humain");
 
         char aiName[50];
         gameConfig->aiFunctions[0].AI_InitLibrary(aiName);
