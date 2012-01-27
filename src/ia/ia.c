@@ -514,7 +514,7 @@ int calculerCoupRestant(const SGameState * const gameState, EPlayer unJoueur) {
 int pratiquementGagner(double deplacementRestantP1, double deplacementRestantP2) {
 	int toReturn;
 	
-	if((0.75*deplacementRestantP1) >= deplacementRestantP2) {
+	if((deplacementRestantP1) <= 0.75*deplacementRestantP2) {
 		toReturn=1;
 	} else {
 		toReturn=0;
