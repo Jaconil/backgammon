@@ -336,17 +336,17 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
     gameState->zones[EPos_OutP2].player = EPlayer2;
 
     // On positionne les pions de depart
-    //gameState->zones[EPos_24].player = EPlayer1;
-    //gameState->zones[EPos_24].nb_checkers = 2;
+    gameState->zones[EPos_24].player = EPlayer1;
+    gameState->zones[EPos_24].nb_checkers = 2;
 
-    //gameState->zones[EPos_13].player = EPlayer1;
-    //gameState->zones[EPos_13].nb_checkers = 5;
+    gameState->zones[EPos_13].player = EPlayer1;
+    gameState->zones[EPos_13].nb_checkers = 5;
 
-    //gameState->zones[EPos_8].player = EPlayer1;
-    //gameState->zones[EPos_8].nb_checkers = 3;
+    gameState->zones[EPos_8].player = EPlayer1;
+    gameState->zones[EPos_8].nb_checkers = 3;
 
-    //gameState->zones[EPos_6].player = EPlayer1;
-    //gameState->zones[EPos_6].nb_checkers = 5;
+    gameState->zones[EPos_6].player = EPlayer1;
+    gameState->zones[EPos_6].nb_checkers = 5;
 
     gameState->zones[EPos_1].player = EPlayer2;
     gameState->zones[EPos_1].nb_checkers = 2;
@@ -359,18 +359,6 @@ void InitGameState(S_GameState* gameState, S_GameConfig gameConfig)
 
     gameState->zones[EPos_19].player = EPlayer2;
     gameState->zones[EPos_19].nb_checkers = 5;
-
-    // temp
-    for (i=0; i<4; i++)
-    {
-        gameState->zones[i].player = EPlayer1;
-        gameState->zones[i].nb_checkers = 1;
-    }
-
-    gameState->zones[EPos_8].player = EPlayer1;
-    gameState->zones[EPos_8].nb_checkers = 1;
-
-    gameState->zones[EPos_OutP1].nb_checkers = 10;
 }
 
 /* Procedure pour afficher les pions
