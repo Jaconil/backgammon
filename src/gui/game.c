@@ -400,14 +400,62 @@ int GetPoints(S_GameState* gameState)
     return points;
 }
 
-/* Fonction qui determine si le joueur courant est humain
+/* Fonction qui determine si le joueur regarde est humain
  * @param S_GameState* gameState
  *     Etat du jeu
+ * @param int current
+ *     1 si on doit regarder le joueur courant, 0 sinon
  * @return int
  *     0 si IA, 1 si Humain
  */
-int IsHuman(S_GameState* gameState)
+int IsHuman(S_GameState* gameState, int current)
 {
-    return ((gameState->currentPlayer == EPlayer1 && gameState->gameConfig.mode != AI_AI) ||
-            (gameState->currentPlayer == EPlayer2 && gameState->gameConfig.mode == HUMAN_HUMAN));
+    if (current)
+    {
+        return ((gameState->currentPlayer == EPlayer1 && gameState->gameConfig.mode != AI_AI) ||
+                (gameState->currentPlayer == EPlayer2 && gameState->gameConfig.mode == HUMAN_HUMAN));
+    }
+    else
+    {
+        return ((gameState->currentPlayer == EPlayer2 && gameState->gameConfig.mode != AI_AI) ||
+                (gameState->currentPlayer == EPlayer1 && gameState->gameConfig.mode == HUMAN_HUMAN));
+    }
+}
+
+/* Procedure qui cree l'etat du jeu a envoyer a l'iA
+ * @param SGameState* AI_gameState
+ *     Etat du jeu pour l'IA a creer
+ * @param S_GameState* gameState
+ *     Etat du jeu du programme
+ */
+void CreateAIGameState(SGameState* AI_gameState, S_GameState* gameState)
+{
+    int i;
+
+    AI_gameState->die1 = gameState->die1;
+    AI_gameState->die2 = gameState->die2;
+    AI_gameState->stake = gameState->stake;
+
+    if (gameState->currentPlayer == EPlayer1)
+    {
+        AI_gameState->score = gameState->scoreP1;
+        AI_gameState->scoreP2 = gameState->scoreP2
+
+        for (i=0; i<28; i++)
+            AI_gameState->zones[i] = gameState->zones[i];
+    }
+    else
+    {
+        AI_gameState->score = gameState->scoreP2;
+        AI_gameState->scoreP2 = gameState->scoreP1
+
+        // On inverse les fleches
+        for (i=0; i<24; i++)
+            AI_gameState->zones[i] = gameState->zones[24-i];
+
+        AI_gameState->zones[EPos_OutP1] = gameState->zones[EPos_OutP2];
+        AI_gameState->zones[EPos_OutP2] = gameState->zones[EPos_OutP1];
+        AI_gameState->zones[EPos_BarP1] = gameState->zones[EPos_BarP2];
+        AI_gameState->zones[EPos_BarP2] = gameState->zones[EPos_BarP1];
+    }
 }
