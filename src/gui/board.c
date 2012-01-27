@@ -219,6 +219,19 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                             gameState->currentStage = FINISH_MATCH_POPUP;
                         else
                         {
+                            // On desalloue et on reinitialise les IA
+                            if (gameState->gameConfig.mode != HUMAN_HUMAN)
+                            {
+                                gameState->gameConfig.aiFunctions[0].AI_EndGame();
+                                gameState->gameConfig.aiFunctions[0].AI_StartGame();
+                            }
+
+                            if (gameState->gameConfig.mode == AI_AI)
+                            {
+                                gameState->gameConfig.aiFunctions[1].AI_EndGame();
+                                gameState->gameConfig.aiFunctions[1].AI_StartGame();
+                            }
+
                             // Remise a zero du plateau
                             InitGameState(gameState, gameState->gameConfig);
                         }
@@ -806,10 +819,16 @@ int DisplayBoard(SDL_Surface* window, S_GameConfig gameConfig)
 
     // On initialise les IA
     if (gameConfig.mode != HUMAN_HUMAN)
+    {
         gameConfig.aiFunctions[0].AI_StartMatch((unsigned int)(gameConfig.points));
+        gameConfig.aiFunctions[0].AI_StartGame();
+    }
 
     if (gameConfig.mode == AI_AI)
+    {
         gameConfig.aiFunctions[1].AI_StartMatch((unsigned int)(gameConfig.points));
+        gameConfig.aiFunctions[1].AI_StartGame();
+    }
 
     // finish = On revient au menu
     // quit = On quitte le programme
@@ -837,6 +856,13 @@ int DisplayBoard(SDL_Surface* window, S_GameConfig gameConfig)
         {
             finish = 1;
             quit = 1;
+
+            // On desalloue les IA
+            if (gameConfig.mode != HUMAN_HUMAN)
+                gameConfig.aiFunctions[0].AI_EndGame();
+
+            if (gameConfig.mode == AI_AI)
+                gameConfig.aiFunctions[1].AI_EndGame();
         }
         else if (button == MENU_BOARD)
             finish = 1;
