@@ -214,23 +214,24 @@ E_BoardSelected EventsBoard(SDL_Event* event, S_GameState* gameState)
                     // Bouton "OK"
                     if (ClickRect(event, 293, 305, 100, 30))
                     {
+                        // On desalloue les IA
+                        if (gameState->gameConfig.mode != HUMAN_HUMAN)
+                            gameState->gameConfig.aiFunctions[0].AI_EndGame();
+
+                        if (gameState->gameConfig.mode == AI_AI)
+                            gameState->gameConfig.aiFunctions[1].AI_EndGame();
+
                         if ((gameState->currentPlayer == EPlayer1 && gameState->scoreP1 >= gameState->gameConfig.points) ||
                             (gameState->currentPlayer == EPlayer2 && gameState->scoreP2 >= gameState->gameConfig.points))
                             gameState->currentStage = FINISH_MATCH_POPUP;
                         else
                         {
-                            // On desalloue et on reinitialise les IA
+                            // On reinitialise les IA
                             if (gameState->gameConfig.mode != HUMAN_HUMAN)
-                            {
-                                gameState->gameConfig.aiFunctions[0].AI_EndGame();
                                 gameState->gameConfig.aiFunctions[0].AI_StartGame();
-                            }
 
                             if (gameState->gameConfig.mode == AI_AI)
-                            {
-                                gameState->gameConfig.aiFunctions[1].AI_EndGame();
                                 gameState->gameConfig.aiFunctions[1].AI_StartGame();
-                            }
 
                             // Remise a zero du plateau
                             InitGameState(gameState, gameState->gameConfig);
